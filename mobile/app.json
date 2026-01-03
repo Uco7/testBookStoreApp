@@ -36,6 +36,9 @@
         "projectId": "b5d2bc8a-2cf0-43e8-af7f-1dd462a7d389"
       }
     },
-    "owner": "ucmobileapk"
+    "owner": "ucmobileapk",
+     "assetBundlePatterns": [
+      "**/*"
+    ]
   }
 }

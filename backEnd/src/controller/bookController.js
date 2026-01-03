@@ -9,8 +9,8 @@ export const uploadBook = async (req, res) => {
       return res.status(400).json({ message: "Title and Author are required" });
     }
 
-    // Build full URL for the uploaded file host is the server port, protocol i the http or https uploads is the folder to pick the file, file.filename=name of the  file
-    const fileUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+    const protocol = req.get("x-forwarded-proto") || req.protocol;
+    const fileUrl = `${protocol}://${req.get("host")}/uploads/${req.file.filename}`;
 
     const book = await Book.create({
       title,
