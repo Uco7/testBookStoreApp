@@ -21,7 +21,8 @@
         "foregroundImage": "./assets/logo.jpeg",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.ucmobileapk.bookstore"
     },
     "web": {
       "favicon": "./assets/logo.jpeg"
