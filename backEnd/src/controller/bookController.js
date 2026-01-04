@@ -96,7 +96,7 @@ dotenv.config(); // must be first
 
 import cloudinary from "cloudinary";
 import streamifier from "streamifier";
-import Book from "../models/Book.js";
+import Book from "../models/book.js";
 console.log("cloudinary env:", process.env.CLOUDINARY_NAME, process.env.CLOUDINARY_KEY,process.env.CLOUDINARY_SECRET);
 
 // Configure Cloudinary
