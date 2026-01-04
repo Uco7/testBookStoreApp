@@ -92,19 +92,21 @@
 import Book from "../models/book.js";
 
 export const uploadBook = async (req, res) => {
- try {
+  try {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
     const { title, author, description } = req.body;
-    if (!title || !author)
+    if (!title || !author) {
       return res.status(400).json({ message: "Title and Author are required" });
+    }
 
-    // Multer-Cloudinary puts the file URL in req.file.path
+    const fileUrl = req.file.path; // secure Cloudinary URL
+
     const book = await Book.create({
       title,
       author,
       description,
-      fileUrl: req.file.path,     // Cloudinary URL
+      fileUrl,
       fileType: req.file.mimetype,
       user: req.user.id,
     });
@@ -114,6 +116,8 @@ export const uploadBook = async (req, res) => {
     console.error("Upload error:", err);
     res.status(500).json({ message: "Upload failed" });
   }
+
+ 
 };
 
 export const getBooks = async (req, res) => {
