@@ -92,24 +92,20 @@
 import Book from "../models/book.js";
 
 export const uploadBook = async (req, res) => {
-  try {
+ try {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
     const { title, author, description } = req.body;
-    if (!title || !author) {
+    if (!title || !author)
       return res.status(400).json({ message: "Title and Author are required" });
-    }
 
-    // Cloudinary gives us a permanent URL
-    const fileUrl = req.file.path;
-    const fileType = req.file.mimetype;
-
+    // Multer-Cloudinary puts the file URL in req.file.path
     const book = await Book.create({
       title,
       author,
       description,
-      fileUrl,
-      fileType,
+      fileUrl: req.file.path,     // Cloudinary URL
+      fileType: req.file.mimetype,
       user: req.user.id,
     });
 
