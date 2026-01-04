@@ -1,22 +1,27 @@
-import { dbconection } from "./config/db.js";
 
-import express from "express";
-import cors from "cors";
 import path from "path";
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config(); // must be first
 
+import { dbconection } from "./config/db.js";
+import express from "express";
+import cors from "cors";
 import authRoutes from "./routes/authRoutes.js";
 import bookRoutes from "./routes/bookRoute.js";
 
 const app = express();
+
 
 app.use(cors());
 app.use(express.json());
 app.set("trust proxy", true);
 
 app.use("/uploads", express.static(path.join(path.resolve(), "uploads")));
-
+console.log("ENV check:", {
+  mongo: process.env.MONGODB_URI,
+  jwt: process.env.JWT_SECRET,
+  cloud_name: process.env.CLOUDINARY_NAME
+});
 
 app.use( authRoutes);
 

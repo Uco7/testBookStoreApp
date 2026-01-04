@@ -1,8 +1,7 @@
 import express from "express";
 import { uploadBook, getBooks ,updateBook,deleteBook} from "../controller/bookController.js";
 import authMiddleware from "../middleWare/authMiddleWare.js";
-import { upload } from "../config/upload/upload.js";
-
+import upload from "../config/upload/upload.js";
 const router = express.Router();
 
 router.post("/books", authMiddleware, upload.single("file"), uploadBook);

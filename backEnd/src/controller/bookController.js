@@ -89,88 +89,105 @@
 //     res.status(500).json({ message: "Failed to update book" });
 //   }
 // };
-import Book from "../models/book.js";
+// src/controller/bookController.js
+// src/controller/bookController.js
+import dotenv from "dotenv";
+dotenv.config(); // must be first
+
+import cloudinary from "cloudinary";
+import streamifier from "streamifier";
+import Book from "../models/Book.js";
+console.log("cloudinary env:", process.env.CLOUDINARY_NAME, process.env.CLOUDINARY_KEY,process.env.CLOUDINARY_SECRET);
+
+// Configure Cloudinary
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_KEY,
+  api_secret: process.env.CLOUDINARY_SECRET
+});
 
 export const uploadBook = async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
-
     const { title, author, description } = req.body;
-    if (!title || !author) {
-      return res.status(400).json({ message: "Title and Author are required" });
+
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
     }
 
-    const fileUrl = req.file.path; // secure Cloudinary URL
+    const uploadResult = await new Promise((resolve, reject) => {
+      const stream = cloudinary.v2.uploader.upload_stream(
+        {
+          folder: "BookStoreApp",
+          resource_type: "raw",        // for PDFs and non-images
+          use_filename: true,
+          unique_filename: true,
+        },
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        }
+      );
+
+      streamifier.createReadStream(req.file.buffer).pipe(stream);
+    });
 
     const book = await Book.create({
       title,
       author,
       description,
-      fileUrl,
-      fileType: req.file.mimetype,
+      fileUrl: uploadResult.secure_url,
+      fileType: uploadResult.resource_type,
       user: req.user.id,
     });
 
     res.status(201).json(book);
+
   } catch (err) {
     console.error("Upload error:", err);
-    res.status(500).json({ message: "Upload failed" });
+    res.status(500).json({ message: err.message });
   }
-
- 
 };
 
 export const getBooks = async (req, res) => {
   try {
     const books = await Book.find({ user: req.user.id }).sort("-createdAt");
-    res.json(books);
+    res.status(200).json(books);
   } catch (err) {
-    console.error("Fetch books error:", err);
-    res.status(500).json({ message: "Fetch failed" });
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const updateBook = async (req, res) => { 
+  try {
+    const book = await Book.findById(req.params.id);
+    if (!book) return res.status(404).json({ message: "Book not found" });
+
+    const { title, author, description } = req.body;
+
+    if (req.file) {
+      const result = await uploadToCloudinary(req.file.buffer);
+      book.file = result.secure_url;
+    }
+
+    book.title = title || book.title;
+    book.author = author || book.author;
+    book.description = description || book.description;
+
+    await book.save();
+    res.status(200).json(book);
+  } catch (err) {
+    console.error("UpdateBook error:", err);
+    res.status(500).json({ message: err.message });
   }
 };
 
 export const deleteBook = async (req, res) => {
   try {
-    const { id } = req.params;
-
-    const book = await Book.findOne({ _id: id, user: req.user.id });
-    if (!book) {
-      return res.status(404).json({ message: "Book not found" });
-    }
-
-    await Book.deleteOne({ _id: id });
-    res.json({ message: "Book deleted successfully" });
+    const book = await Book.findByIdAndDelete(req.params.id);
+    if (!book) return res.status(404).json({ message: "Book not found" });
+    res.status(200).json({ message: "Book deleted successfully" });
   } catch (err) {
-    console.error("Delete book error:", err);
-    res.status(500).json({ message: "Failed to delete book" });
+    console.error("DeleteBook error:", err);
+    res.status(500).json({ message: err.message });
   }
 };
-
-export const updateBook = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { title, author, description } = req.body;
-
-    const book = await Book.findOne({ _id: id, user: req.user.id });
-    if (!book) {
-      return res.status(404).json({ message: "Book not found" });
-    }
-
-    if (title) book.title = title;
-    if (author) book.author = author;
-    if (description !== undefined) book.description = description;
-
-    if (req.file) {
-      book.fileUrl = req.file.path;
-      book.fileType = req.file.mimetype;
-    }
-
-    await book.save();
-    res.json(book);
-  } catch (err) {
-    console.error("Update book error:", err);
-    res.status(500).json({ message: "Failed to update book" });
-  }
-};
-
