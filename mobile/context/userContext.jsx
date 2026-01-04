@@ -1,8 +1,9 @@
 import { createContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import axios from 'axios'
-let APPURl="https://testbookstoreapp.onrender.com"
+// let APPURl="http://192.168.223.202:5000";
 
+let APPURl="https://testbookstoreapp.onrender.com";
 
 export const UserContext=createContext();
 export  function UserProvider({children}){
