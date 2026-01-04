@@ -1,27 +1,37 @@
+// import multer from "multer";
+// import { v2 as cloudinary } from "cloudinary";
+// import cloudinaryStorage from "multer-storage-cloudinary";
+
+// cloudinary.config({
+//   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+//   api_key: process.env.CLOUDINARY_API_KEY,
+//   api_secret: process.env.CLOUDINARY_API_SECRET,
+// });
+
+// const storage = cloudinaryStorage({
+//   cloudinary,
+//   params: {
+//     folder: "bookstore",
+//     resource_type: "raw",
+//     allowed_formats: ["pdf", "doc", "docx"],
+//   },
+// });
+
+// export const upload = multer({ storage });
 import multer from "multer";
-import path from "path";
+import cloudinaryStorage from "multer-storage-cloudinary";
+import { v2 as cloudinary } from "cloudinary";
 
-const storage = multer.diskStorage({
-  destination(req, file, cb) {
-    cb(null, "uploads/");
-  },
-  filename(req, file, cb) {
-    const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, unique + path.extname(file.originalname));
+cloudinary.config({ secure: true });
+
+const storage = cloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "bookstore",
+    resource_type: "raw",
+    allowed_formats: ["pdf", "doc", "docx"],
   },
 });
 
-const fileFilter = (req, file, cb) => {
-  const allowed = /pdf|doc|docx/;
-  const ext = path.extname(file.originalname).toLowerCase();
-  const mime = file.mimetype;
+export const upload = multer({ storage });
 
-  if (allowed.test(ext) && allowed.test(mime)) cb(null, true);
-  else cb(new Error("Only PDF, DOC, DOCX allowed"), false);
-};
-
-export const upload = multer({
-  storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
-  fileFilter,
-});
