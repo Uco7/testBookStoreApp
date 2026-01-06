@@ -54,13 +54,13 @@
 //     </ThemeView>
 //       </TouchableWithoutFeedback>
 //   )
+
+
 // }
 
 // export default login
 
 // const styles = StyleSheet.create({})
-
-
 
 
 
@@ -75,26 +75,78 @@ import { colors } from '../../constant/colors';
 import InputTheme from '../../component/InputTheme';
 import { useUser } from '../../hook/useUser';
 
-const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
-  const router=useRouter()
-  const {login}=useUser()
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
+const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)[^\s]{8,64}$/;
 
-  
+const MAX_IDENTIFIER_LENGTH = 120;
+const MAX_PASSWORD_LENGTH = 128;
+
+export default function Login() {
+  const [identifier, setIdentifier] = useState(""); // email OR username
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+
+  const router = useRouter();
+  const { login } = useUser();
+
+  const sanitize = (value) =>
+    value.replace(/[<>\/\\$;]/g, "").trim();
+
+  const validate = () => {
+    if (!identifier || !password) return "All fields are required.";
+
+    if (identifier.length > MAX_IDENTIFIER_LENGTH)
+      return "Identifier is too long.";
+
+    if (password.length > MAX_PASSWORD_LENGTH)
+      return "Password is too long.";
+
+    const isEmail = EMAIL_REGEX.test(identifier);
+    const isUsername = USERNAME_REGEX.test(identifier);
+
+    if (!isEmail && !isUsername)
+      return "Enter a valid email or username.";
+
+    if (!PASSWORD_REGEX.test(password))
+      return "Password must be at least 8 characters with letters and numbers.";
+
+    return null;
+  };
 
   const handleSubmit = async () => {
-    setError(null);
-    try {
-      
-      await login(email, password);
-      router.replace("/profile")
-    } catch (error) {
-      
-      setError("Login failed. Please check your credentials and try again.");
+    if (loading) return;
+
+    if (attempts >= 5) {
+      setError("Too many failed attempts. Try again later.");
+      return;
     }
-   
+
+    setError(null);
+    setLoading(true);
+
+    const cleanIdentifier = sanitize(identifier);
+    const cleanPassword = sanitize(password);
+
+    const validationError = validate();
+    if (validationError) {
+      setError(validationError);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      await login(cleanIdentifier, cleanPassword);
+      router.replace("/profile");
+    } catch (err) {
+      console.warn("Login error:", err?.message || err);
+      setAttempts((prev) => prev + 1);
+      setError("Login failed. Please check your credentials.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -105,18 +157,17 @@ const Login = () => {
         <Spacer />
 
         <InputTheme
-          placeholder="User Email"
+          placeholder="Email or Username"
           style={{ width: '80%' }}
-          keyboardType="email-address"
           autoCapitalize="none"
-          onChangeText={setEmail}
-          value={email}
+          onChangeText={setIdentifier}
+          value={identifier}
         />
 
         <Spacer />
 
         <InputTheme
-          placeholder="User Password"
+          placeholder="Password"
           style={{ width: '80%' }}
           secureTextEntry
           autoCapitalize="none"
@@ -126,9 +177,9 @@ const Login = () => {
 
         <Spacer />
 
-        <ThemeButton onPress={handleSubmit}>
+        <ThemeButton onPress={handleSubmit} disabled={loading}>
           <Text style={{ color: '#fff', fontSize: 20, fontWeight: '600' }}>
-            Login
+            {loading ? "Logging in..." : "Login"}
           </Text>
         </ThemeButton>
 
@@ -138,31 +189,18 @@ const Login = () => {
 
         <Spacer />
 
-        <Text>
-          Don't have an account? Register{' '}
+        <ThemeText>
+          <Text style={{ fontSize: 14 }}>
+            Don't have an account? Register{" "}
+          </Text>
           <Link
             href="/register"
             style={{ color: colors.primary, fontSize: 20, fontWeight: '600' }}
           >
             Here
           </Link>
-        </Text>
+        </ThemeText>
       </ThemeView>
     </TouchableWithoutFeedback>
   );
-};
-
-export default Login;
-
-const styles = StyleSheet.create({
-  error: {
-    padding: 10,
-    color: colors.warning,
-    borderWidth: 1,
-    borderColor: colors.warning,
-    borderRadius: 5,
-    backgroundColor: '#e7c0c0ff',
-    width: '80%',
-    textAlign: 'center',
-  },
-});
+}

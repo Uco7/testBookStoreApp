@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "scheme": "bookstore",
     "icon": "./assets/logo.jpeg",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/logo.jpeg",

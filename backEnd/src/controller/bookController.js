@@ -91,6 +91,9 @@
 // };
 // src/controller/bookController.js
 // src/controller/bookController.js
+
+
+
 import dotenv from "dotenv";
 dotenv.config(); // must be first
 
@@ -107,41 +110,37 @@ cloudinary.v2.config({
 });
 
 export const uploadBook = async (req, res) => {
+
   try {
-    const { title, author, description } = req.body;
+    const { title, author, description, fileLink } = req.body;
 
-    if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
+    let fileUrl = null;
+    let fileType = null;
+
+    if (req.file) {
+      const uploadResult = await new Promise((resolve, reject) => {
+        const stream = cloudinary.v2.uploader.upload_stream(
+          { folder: "BookStoreApp", resource_type: "raw", use_filename: true, unique_filename: true },
+          (error, result) => error ? reject(error) : resolve(result)
+        );
+        streamifier.createReadStream(req.file.buffer).pipe(stream);
+      });
+
+      fileUrl = uploadResult.secure_url;
+      fileType = uploadResult.resource_type;
     }
-
-    const uploadResult = await new Promise((resolve, reject) => {
-      const stream = cloudinary.v2.uploader.upload_stream(
-        {
-          folder: "BookStoreApp",
-          resource_type: "raw",        // for PDFs and non-images
-          use_filename: true,
-          unique_filename: true,
-        },
-        (error, result) => {
-          if (error) return reject(error);
-          resolve(result);
-        }
-      );
-
-      streamifier.createReadStream(req.file.buffer).pipe(stream);
-    });
 
     const book = await Book.create({
       title,
       author,
       description,
-      fileUrl: uploadResult.secure_url,
-      fileType: uploadResult.resource_type,
+      fileUrl,
+      fileType,
+      fileLink,
       user: req.user.id,
     });
 
     res.status(201).json(book);
-
   } catch (err) {
     console.error("Upload error:", err);
     res.status(500).json({ message: err.message });

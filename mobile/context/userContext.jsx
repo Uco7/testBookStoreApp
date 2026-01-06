@@ -1,92 +1,84 @@
-import { createContext, useEffect, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage"
-import axios from 'axios'
-// let APPURl="http://192.168.223.202:5000";
 
-let APPURl="https://testbookstoreapp.onrender.com";
-
-export const UserContext=createContext();
-export  function UserProvider({children}){
-  const [user,setUser]=useState(null);
-  const [authToken,setAuthToken]=useState(false);
-   async function login(email,password){
   
+
+
+import { createContext, useEffect, useRef, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+
+const APP_URL = "http://192.168.1.202:5000";
+const API_TIMEOUT = 10000;
+
+export const UserContext = createContext();
+
+export function UserProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
+  const abortController = useRef(null);
+
+  const api = axios.create({
+    baseURL: APP_URL,
+    timeout: API_TIMEOUT,
+    headers: { "Content-Type": "application/json" },
+  });
+
+  const getToken = () => AsyncStorage.getItem("token");
+
+  async function register({ username, fullName, email, password }) {
     try {
-        const res=await axios.post(`${APPURl}/login`,{email,password})
-    console.log("loggged user data",res.data)
-    const  userToken=await AsyncStorage.setItem("token",res.data.token);
-    console.log("asnystorage data||token=",userToken)
-     await fetchUser();
-    //  return (true)
-      
-    } catch (error) {
-      console.log("login error:", error.response?.data || err.message);
-      // return (false)
-      
+      const res = await api.post("/register", { username, fullName, email, password });
+      return res.data;
+    } catch (err) {
+      throw new Error(err.response?.data?.message || "Registration failed");
     }
-    }
-    async function register(email,password) {
-      try {
-        const newUser=await axios.post(`${APPURl}/register`,{email,password})
-        console.log("registered user data",newUser)
-
-        
-      } catch (error) {
-        throw new Error(error.message||"Registration failed")
-        
-      }
-      
-    }
-    async function fetchUser() {
-      try {
-        const token=await AsyncStorage.getItem("token");
-        if(!token){
-          throw new Error("No auth token found");
-         
-        }
-        console.log("fetched token from asyncstorage",token)
-        const response=await axios.get(`${APPURl}/user`,({
-          headers:{
-            Authorization:`Bearer ${token}`
-          }
-        }))
-        if(response.data){
-          console.log("fetched user data",response.data)
-          setUser(response.data)
-          
-        }
-        
-      } catch (error) {
-        console.log("fetch user error:", error.message);
-      // console.log("Fetch user error:", error.response?.status, error.response?.data || error.message);
-        
-      }finally{
-        setAuthToken(true)
-      }
-      }
-    async function logOut() {
-      try {
-        await AsyncStorage.removeItem("token");
-        setUser(null);
-        setAuthToken(false);
-        
-      } catch (error) {
-        console.log("logout error",error)
-        
-      }
-      
-    }
-    useEffect(() => {
-      fetchUser();
-    }, []);
-    return(
-      <UserContext.Provider value={{user,authToken,login,register,logOut}}>
-        {children}
-      </UserContext.Provider>
-    ) 
-  
   }
-  
 
+  async function login(identifier, password) {
+    try {
+      const res = await api.post("/login", { identifier, password });
+      await AsyncStorage.setItem("token", res.data.token);
+      await fetchUser();
+    } catch (err) {
+      throw new Error(err.response?.data?.msg || "Login failed");
+    }
+  }
 
+  async function fetchUser() {
+    try {
+      const token = await getToken();
+      if (!token) {
+        setAuthReady(true);
+        return;
+      }
 
+      const res = await api.get("/user", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setUser(res.data);
+    } catch (err) {
+      console.warn("Fetch user error:", err.message);
+      await AsyncStorage.removeItem("token");
+      setUser(null);
+    } finally {
+      setAuthReady(true);
+    }
+  }
+
+  async function logOut() {
+    await AsyncStorage.removeItem("token");
+    setUser(null);
+    setAuthReady(false);
+  }
+
+  useEffect(() => {
+    fetchUser();
+    return () => abortController.current?.abort();
+  }, []);
+
+  return (
+    <UserContext.Provider value={{ user, authReady, login, register, logOut }}>
+      {children}
+    </UserContext.Provider>
+  );
+}
