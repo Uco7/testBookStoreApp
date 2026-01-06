@@ -6,7 +6,7 @@ import { createContext, useEffect, useRef, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
-const APP_URL = "http://192.168.1.202:5000";
+let APPURl="https://testbookstoreapp.onrender.com";
 const API_TIMEOUT = 10000;
 
 export const UserContext = createContext();
@@ -17,7 +17,7 @@ export function UserProvider({ children }) {
   const abortController = useRef(null);
 
   const api = axios.create({
-    baseURL: APP_URL,
+    baseURL: APPURl,
     timeout: API_TIMEOUT,
     headers: { "Content-Type": "application/json" },
   });
