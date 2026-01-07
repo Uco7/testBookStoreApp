@@ -151,7 +151,7 @@ export default function Login() {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <ThemeView>
+      <ThemeView style={styles.container}>
         <ThemeText>Login Page</ThemeText>
 
         <Spacer />
@@ -204,3 +204,15 @@ export default function Login() {
     </TouchableWithoutFeedback>
   );
 }
+const styles = StyleSheet.create({
+    container: { justifyContent: "center", alignItems: "center" },
+
+  error: {
+    color: 'red',
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 10,
+    maxWidth: '80%',
+  
+  }
+});

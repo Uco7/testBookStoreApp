@@ -28,7 +28,7 @@ const QUESTIONS = [
 
 export default function QuestionsScreen() {
   return (
-    <ThemeView style={styles.container} safe>
+    <ThemeView style={styles.container} safe={true}>
       <ThemeText style={styles.title}>Help & Questions</ThemeText>
       <ThemeText style={styles.subtitle}>
         Common questions about using the app
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: "600",
-    marginTop: 10,
+    marginTop: "20%",
   },
   subtitle: {
     fontSize: 13,

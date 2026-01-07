@@ -62,7 +62,7 @@ const { user, authReady } = useUser();
   }
 
   return (
-    <ThemeView style={styles.container}>
+    <ThemeView style={styles.container} safe={true}>
       {/* Header */}
       <View style={styles.header}>
         <Ionicons name="person-circle" size={90} color="#4f46e5" />

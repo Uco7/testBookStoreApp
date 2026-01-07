@@ -4,7 +4,7 @@ import { Stack } from 'expo-router'
 import { useColorScheme } from 'react-native'
 import { colors } from '../../constant/colors'
 
-const AuthLayout = () => {
+const RefereceLayout = () => {
   const colorScheme=useColorScheme()
     const theme=colors[colorScheme]??colors.light
  
@@ -15,10 +15,10 @@ const AuthLayout = () => {
     
     }}>
       
-        <Stack.Screen name='register'options={{title:"Register Page"}} /> 
-        <Stack.Screen name='login'options={{title:"Login Page"}} />
+        <Stack.Screen name='appUsage'options={{title:"Register Page"}} /> 
+        <Stack.Screen name='questionScreen'options={{title:"Login Page"}} />
     </Stack>
   )
 }
 
-export default AuthLayout
+export default RefereceLayout

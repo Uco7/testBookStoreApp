@@ -105,35 +105,68 @@ export function BookProvider({ children }) {
 
   // Update Book (supports uploaded file OR external link)
   const updateBook = async (bookId, { title, author, description, file, fileLink }) => {
-    try {
-      const token = await AsyncStorage.getItem("token");
-      const formData = new FormData();
+  try {
+    const token = await AsyncStorage.getItem("token");
+    const formData = new FormData();
 
-      if (title) formData.append("title", title);
-      if (author) formData.append("author", author);
-      if (description) formData.append("description", description);
-      if (file) {
-        formData.append("file", {
-          uri: file.uri,
-          type: file.type || "application/pdf",
-          name: file.name,
-        });
-      }
-      if (fileLink) formData.append("fileLink", fileLink);
+    if (title) formData.append("title", title);
+    if (author) formData.append("author", author);
+    if (description) formData.append("description", description);
 
-      await axios.put(`${APPURl}/books/${bookId}`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
+    if (file) {
+      formData.append("file", {
+        uri: file.uri,
+        type: file.mimeType || "application/octet-stream",
+        name: file.name,
       });
-
-      fetchBooks(); // refresh list
-    } catch (err) {
-      console.log("Update book error:", err.response?.data || err.message);
-      throw err;
     }
-  };
+
+    if (fileLink) formData.append("fileLink", fileLink);
+
+    await axios.put(`${APPURl}/books/${bookId}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    fetchBooks();
+  } catch (err) {
+    console.error("Update book error:", err.response?.data || err.message);
+    throw err;
+  }
+};
+
+  // const updateBook = async (bookId, { title, author, description, file, fileLink }) => {
+  //   try {
+  //     const token = await AsyncStorage.getItem("token");
+  //     const formData = new FormData();
+
+  //     if (title) formData.append("title", title);
+  //     if (author) formData.append("author", author);
+  //     if (description) formData.append("description", description);
+  //     if (file) {
+  //       formData.append("file", {
+  //         uri: file.uri,
+  //         type: file.type || "application/pdf",
+  //         name: file.name,
+  //       });
+  //     }
+  //     if (fileLink) formData.append("fileLink", fileLink);
+
+  //     await axios.put(`${APPURl}/books/${bookId}`, formData, {
+  //       headers: {
+  //         "Content-Type": "multipart/form-data",
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     });
+
+  //     fetchBooks(); // refresh list
+  //   } catch (err) {
+  //     console.log("Update book error:", err.response?.data || err.message);
+  //     throw err;
+  //   }
+  // };
 
   // Delete Book
   const deleteBook = async (bookId) => {

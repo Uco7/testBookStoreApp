@@ -18,7 +18,7 @@ const DashBordLayout = () => {
       tabBarInactiveTintColor:theme.text
     }
     }>
-        <Tabs.Screen name='profile' options={{title:"Profile Page",tabBarIcon:({focused})=>(
+        <Tabs.Screen name='profile' options={{title:"Profile ",tabBarIcon:({focused})=>(
           <Ionicons
           name={focused?"person":"person-outline"}
           size={20}
@@ -38,14 +38,14 @@ const DashBordLayout = () => {
           
           />
         )}}/>
-        <Tabs.Screen name='create' options={{title:"Create Page",tabBarIcon:({focused})=>(
+        <Tabs.Screen name='create' options={{title:"Upload",tabBarIcon:({focused})=>(
           <Ionicons
           name={focused?"create":"create-outline"}
           size={20}
           color={theme.iconColor}
 
           
-          
+       
           />
         )}}/>
         <Tabs.Screen name='updateBook' options={{href:null}}/>

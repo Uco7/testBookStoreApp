@@ -156,16 +156,46 @@ export const getBooks = async (req, res) => {
   }
 };
 
-export const updateBook = async (req, res) => { 
+// export const updateBook = async (req, res) => { 
+//   try {
+//     const book = await Book.findById(req.params.id);
+//     if (!book) return res.status(404).json({ message: "Book not found" });
+
+//     const { title, author, description } = req.body;
+
+//     if (req.file) {
+//       const result = await uploadToCloudinary(req.file.buffer);
+//       book.file = result.secure_url;
+//     }
+
+//     book.title = title || book.title;
+//     book.author = author || book.author;
+//     book.description = description || book.description;
+
+//     await book.save();
+//     res.status(200).json(book);
+//   } catch (err) {
+//     console.error("UpdateBook error:", err);
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+
+export const updateBook = async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
     if (!book) return res.status(404).json({ message: "Book not found" });
 
-    const { title, author, description } = req.body;
+    const { title, author, description, fileLink } = req.body;
+
+    if (fileLink) {
+      book.fileLink = fileLink;
+      book.fileUrl = null; // optional: clear file if link used
+    }
 
     if (req.file) {
       const result = await uploadToCloudinary(req.file.buffer);
-      book.file = result.secure_url;
+      book.fileUrl = result.secure_url;
+      book.fileLink = null; // optional: clear link if file used
     }
 
     book.title = title || book.title;
@@ -179,6 +209,7 @@ export const updateBook = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
 
 export const deleteBook = async (req, res) => {
   try {

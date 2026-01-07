@@ -95,7 +95,7 @@ const handleFeedback = () => {
             </TouchableOpacity>
           </Link>
 
-          <Link href="/library" asChild>
+          <Link href="/book" asChild>
             <TouchableOpacity style={styles.button}>
               <ThemeText style={styles.buttonText}>My Library</ThemeText>
             </TouchableOpacity>
@@ -103,7 +103,7 @@ const handleFeedback = () => {
         </View>
       </View>
       <Spacer/>
-      <ThemeText style={styles.topText}>Learn how to use this app{""} <Link href="/appUsage" style={styles.link}>Cilck</Link></ThemeText>
+      <ThemeText style={styles.topText}>Learn how to use this app <Link href="/appUsage" style={styles.link}>Cilck</Link></ThemeText>
     </ThemeView>
   );
 };
@@ -119,27 +119,27 @@ const styles = StyleSheet.create({
     paddingTop: 40, // space for status bar
   },
   nav: {
-    width: "90%",
+    width: "95%",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 20,
   },
   navTitle: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: "600",
     color: "#fff",
     padding:20
   },
   topText: {
-    fontSize: 18,
+    fontSize: 12,
     fontWeight: "500",
     // marginBottom: 20,
     color: "#fff",
     textAlign: "center",
   },
   card: {
-    width: "90%",
+    width: "95%",
     paddingVertical: 30,
     paddingHorizontal: 20,
     borderRadius: 24,

@@ -84,9 +84,9 @@ export default function Create() {
         <View style={styles.row}>
           <ThemeButton
             onPress={() => setSelectedType("reading")}
-            style={[styles.typeBtn, { width: "50%" }, selectedType === "reading" && styles.typeBtnActive]}
+            style={[styles.typeBtn,  selectedType === "reading" && styles.typeBtnActive]}
           >
-            <View style={[styles.btnContent, { marginLeft: 20 }]}>
+            <View style={styles.btnContent}>
               <Ionicons name="book-outline" size={16} color="#fff" />
               <ThemeText style={styles.btnText}>Reading Book</ThemeText>
             </View>
@@ -94,9 +94,9 @@ export default function Create() {
 
           <ThemeButton
             onPress={() => setSelectedType("link")}
-            style={[styles.typeBtn,{ width: "50%" }, selectedType === "link" && styles.typeBtnActive]}
+            style={[styles.typeBtn, selectedType === "link" && styles.typeBtnActive]}
           >
-            <View style={[styles.btnContent, { marginLeft: 20 }]}>
+            <View style={styles.btnContent}>
               <Ionicons name="link-outline" size={16} color="#fff" />
               <ThemeText style={styles.btnText}>File/Doc Link</ThemeText>
             </View>
@@ -136,7 +136,7 @@ export default function Create() {
           {(selectedType === "doc" || selectedType === "reading") && (
             <>
               <InputTheme
-                placeholder="Author Name"
+                placeholder="Author Name(optional)"
                 value={author}
                 onChangeText={setAuthor}
               />
@@ -153,7 +153,7 @@ export default function Create() {
                 onPress={pickFile}
                 style={{ width: "80%", marginLeft: "auto", marginRight: "auto" }}
               >
-                <ThemeText>{file ? file.name : "Pick Book File"}</ThemeText>
+                <ThemeText>{file ? file.name : "Pick File"}</ThemeText>
               </ThemeButton>
             </>
           )}
@@ -195,6 +195,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: "90%",
+    height: "70%",
     paddingVertical: 28,
     paddingHorizontal: 20,
     borderRadius: 26,
@@ -213,11 +214,12 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   row: {
+    width: "90%",
     flexDirection: "row",
     gap: 10,
-    overflow: "hidden",
-    marginVertical: 10,
-    marginHorizontal: 20,
+    // overflow: "hidden",
+    // marginVertical: 10,
+    // marginHorizontal: 20,
     marginTop: 40,
   },
   typeBtn: {
@@ -233,10 +235,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
+    gap: 3,
   },
   btnText: {
-    fontSize: 14,
+    fontSize: 10,
     color: "#fff",
   },
 });

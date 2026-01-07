@@ -5,7 +5,7 @@ import Spacer from "../../component/Spacer";
 
 export default function AppUsage() {
   return (
-    <ThemeView style={styles.container} safe>
+    <ThemeView style={styles.container} safe={true}>
       <ThemeText style={styles.title}>How to Use This App</ThemeText>
       <ThemeText style={styles.subtitle}>
         A quick guide to get you started
