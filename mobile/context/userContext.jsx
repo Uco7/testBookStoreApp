@@ -43,33 +43,33 @@ export function UserProvider({ children }) {
       throw new Error(err.response?.data?.msg || "Login failed"||"poor Network: check your networkconnection");
     }
   }
+async function fetchUser() {
+  try {
+    const token = await getToken();
 
-  async function fetchUser() {
-    try {
-      const token = await getToken();
-      if (!token) {
-        setAuthReady(false);
-        return;
-      }
-
-      const res = await api.get("/user", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      setUser(res.data);
-    } catch (err) {
-      console.warn("Fetch user error:", err.message);
-      await AsyncStorage.removeItem("token");
+    if (!token) {
       setUser(null);
-    } finally {
-      setAuthReady(true);
+      return;
     }
+
+    const res = await api.get("/user", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    setUser(res.data);
+  } catch (err) {
+    console.warn("Fetch user error:", err.message);
+    await AsyncStorage.removeItem("token");
+    setUser(null);
+  } finally {
+    setAuthReady(true);
   }
+}
 
   async function logOut() {
     await AsyncStorage.removeItem("token");
     setUser(null);
-    setAuthReady(false);
+    setAuthReady(true);
   }
 
   useEffect(() => {

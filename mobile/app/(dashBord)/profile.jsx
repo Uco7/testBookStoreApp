@@ -27,6 +27,7 @@ const { user, authReady, logOut } = useUser();
         <ActivityIndicator
         size={20}
         color="#4f46e5"
+        style={{flex:1, alignItems:"center"}}
         />
       </ThemeView>
     );
