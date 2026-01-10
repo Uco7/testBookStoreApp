@@ -11,6 +11,8 @@ import { colors } from '../../constant/colors';
 import InputTheme from '../../component/InputTheme';
 import { useUser } from '../../hook/useUser';
 import { Ionicons } from '@expo/vector-icons';
+import KeyBordAvoidingComponent from '../../component/KeyBordAvoidingComponent';
+import CardTheme from '../../component/CardTheme';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
@@ -98,9 +100,11 @@ const MAX_PASSWORD_LENGTH = 128;
   };
 
   return (
+        <KeyBordAvoidingComponent>
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <ThemeView style={styles.container}>
-        <View style={styles.card}>
+      <ThemeView style={styles.container} safe={true}>
+
+        <CardTheme style={styles.card}>
           <View style={styles.header}>
             <Ionicons name="arrow-back" size={22} color="#fff" onPress={() => router.back()} />
             <ThemeText style={styles.headerTitle}>Create Account</ThemeText>
@@ -150,9 +154,10 @@ const MAX_PASSWORD_LENGTH = 128;
             Already have an account?{" "}
             <Link href="/login" style={styles.loginLink}>Log in</Link>
           </Text>
-        </View>
+        </CardTheme>
       </ThemeView>
     </TouchableWithoutFeedback>
+            </KeyBordAvoidingComponent>
   );
 }
 
@@ -162,13 +167,15 @@ export default Register;
 const styles = StyleSheet.create({
   container: { justifyContent: "center", alignItems: "center" },
   card: {
-    width: "90%",
-    paddingVertical: 30,
-    paddingHorizontal: 20,
-    borderRadius: 26,
-    backgroundColor: "rgba(255,255,255,0.05)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.15)",
+    // width: "90%",
+    // paddingVertical: 30,
+    // paddingHorizontal: 20,
+    // borderRadius: 26,
+    // backgroundColor: "rgba(14, 12, 12, 1)",
+    // // backgroundColor: ,
+
+    // borderWidth: 1,
+    // borderColor: "rgba(255,255,255,0.15)",
   },
   header: { flexDirection: "row", alignItems: "center" },
   headerTitle: { flex: 1, textAlign: "center", fontSize: 18, fontWeight: "600" },

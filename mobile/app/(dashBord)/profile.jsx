@@ -1,34 +1,6 @@
-// import { StyleSheet, Text, View } from 'react-native'
-// import React from 'react'
-// import ThemeView from '../../component/ThemeView'
-// import ThemeText from '../../component/ThemeText'
-// import { Link } from 'expo-router'
-// import Spacer from '../../component/Spacer'
-
-// const profile = () => {
-//   return (
-//     <ThemeView>
-//       <ThemeText>Profile Page</ThemeText>
-//       <Spacer/>
-//       <Link href="/create"><ThemeText>Create Book</ThemeText></Link>
-//       <Spacer/>  
-//       <Link href="/book"><ThemeText>Book Shelve</ThemeText></Link>
-//       <Spacer/>  
-//       <Link href="/"><ThemeText>Back To Home</ThemeText></Link>
-//     </ThemeView>
-//   )
-// }
-
-// export default profile
-
-// const styles = StyleSheet.create({})
 
 
-
-
-
-
-import { StyleSheet, View, Pressable } from "react-native";
+import { StyleSheet, View, Pressable, ActivityIndicator } from "react-native";
 import React from "react";
 import ThemeView from "../../component/ThemeView";
 import ThemeText from "../../component/ThemeText";
@@ -36,13 +8,26 @@ import Spacer from "../../component/Spacer";
 import { Link } from "expo-router";
 import { useUser } from "../../hook/useUser";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+
+
 
 const Profile = () => {
-const { user, authReady } = useUser();
+const { user, authReady, logOut } = useUser();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await logOut();
+    router.replace("/login");
+  }
   if (!authReady) {
     return (
       <ThemeView style={styles.centered}>
-        <ThemeText>Loading...</ThemeText>
+        {/* <ThemeText>Loading...</ThemeText> */}
+        <ActivityIndicator
+        size={20}
+        color="#4f46e5"
+        />
       </ThemeView>
     );
   }
@@ -87,6 +72,10 @@ const { user, authReady } = useUser();
         <ProfileAction icon="add-circle-outline" label="Upload Book/File" href="/create" />
         <ProfileAction icon="library-outline" label="Book Shelf/Files" href="/book" />
         <ProfileAction icon="home-outline" label="Home" href="/" />
+        <Pressable style={[styles.actionButton, styles.logout]} onPress={handleLogout}>
+    <Ionicons name="log-out-outline" size={22} color="#ef4444" />
+    <ThemeText style={[styles.actionText, { color: "#ef4444" }]}>Logout</ThemeText>
+  </Pressable>
       </View>
     </ThemeView>
   );

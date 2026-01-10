@@ -1,9 +1,12 @@
+
+
 import {
   Keyboard,
   TouchableWithoutFeedback,
   Alert,
   View,
-  StyleSheet
+  StyleSheet,
+  Pressable
 } from "react-native";
 import React, { useState, useCallback } from "react";
 import ThemeView from "../../component/ThemeView";
@@ -16,6 +19,8 @@ import { useBook } from "../../hook/useBook";
 import { useRouter, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../../constant/colors";
+import KeyBordAvoidingComponent from "../../component/KeyBordAvoidingComponent";
+import CardTheme from "../../component/CardTheme";
 
 export default function Create() {
   const [selectedType, setSelectedType] = useState("doc"); // default type
@@ -77,7 +82,9 @@ export default function Create() {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <KeyBordAvoidingComponent>
+         <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
+
       <ThemeView style={styles.container} safe={true}>
 
         {/* Type Selector Buttons */}
@@ -116,7 +123,7 @@ export default function Create() {
         <Spacer />
 
         {/* Input Card */}
-        <View style={styles.card}>
+        <CardTheme style={styles.card}>
           <View style={styles.header}>
             <Ionicons name="arrow-back" size={22} color="#fff" onPress={() => router.back()} />
             <ThemeText style={styles.headerTitle}>Add New Book</ThemeText>
@@ -153,7 +160,7 @@ export default function Create() {
                 onPress={pickFile}
                 style={{ width: "80%", marginLeft: "auto", marginRight: "auto" }}
               >
-                <ThemeText>{file ? file.name : "Pick File"}</ThemeText>
+                <ThemeText style={{color:"#fff"}}>{file ? file.name : "Pick File"}</ThemeText>
               </ThemeButton>
             </>
           )}
@@ -175,16 +182,18 @@ export default function Create() {
               />
             </>
           )}
-        </View>
+        </CardTheme>
 
         <Spacer height={16} />
 
         <ThemeButton onPress={handleSubmit} style={{ alignItems: "center" }}>
-          <ThemeText>Save Book</ThemeText>
+          <ThemeText style={{color:"#fff"}}>Save Book</ThemeText>
         </ThemeButton>
 
       </ThemeView>
-    </TouchableWithoutFeedback>
+      </Pressable>
+                </KeyBordAvoidingComponent>
+  
   );
 }
 
@@ -194,14 +203,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   card: {
-    width: "90%",
-    height: "70%",
+    // width: "90%",
+    // height: "70%",
     paddingVertical: 28,
     paddingHorizontal: 20,
     borderRadius: 26,
-    backgroundColor: "rgba(255,255,255,0.05)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.15)",
+    // backgroundColor: "rgba(255,255,255,0.05)",
+    // borderWidth: 1,
+    // borderColor: "rgba(255,255,255,0.15)",
   },
   header: {
     flexDirection: "row",

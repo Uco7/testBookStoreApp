@@ -1,54 +1,3 @@
-// {
-//   "expo": {
-//     "name": "BookStore",
-//     "slug": "bookstore",
-//     "version": "1.0.0",
-//     "orientation": "portrait",
-//     "scheme": "bookstore",
-//     "icon": "./assets/logo.jpeg",
-//     "userInterfaceStyle": "light",
-//     "newArchEnabled": true,
-//     "splash": {
-//       "image": "./assets/logo.jpeg",
-//       "resizeMode": "contain",
-//       "backgroundColor": "#ffffff"
-//     },
-//     "ios": {
-//       "supportsTablet": true
-//     },
-//     "android": {
-//       "adaptiveIcon": {
-//         "foregroundImage": "./assets/logo.jpeg",
-//         "backgroundColor": "#ffffff"
-//       },
-//       "edgeToEdgeEnabled": true,
-//       "package": "com.ucmobileapk.bookstore"
-//     },
-//     "web": {
-//       "favicon": "./assets/logo.jpeg"
-//     },
-//     "plugins": [
-//       "expo-router"
-//     ],
-//     "extra": {
-//       "router": {},
-//       "eas": {
-//         "projectId": "b5d2bc8a-2cf0-43e8-af7f-1dd462a7d389"
-//       }
-//     },
-//     "owner": "ucmobileapk",
-//     "assetBundlePatterns": [
-//       "**/*"
-//     ],
-//     "runtimeVersion": {
-//       "policy": "appVersion"
-//     },
-//     "updates": {
-//       "url": "https://u.expo.dev/b5d2bc8a-2cf0-43e8-af7f-1dd462a7d389"
-//     }
-//   }
-// }
-
 {
   "expo": {
     "name": "BookStore",
@@ -72,11 +21,22 @@
         "foregroundImage": "./assets/logo.jpeg",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
+      "edgeToEdgeEnabled": false,
       "package": "com.ucmobileapk.bookstore"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-navigation-bar",
+        {
+          "backgroundColor": "#0f172a",
+          "barStyle": "light",
+          "borderColor": "#1f2937",
+          "visibility": "visible",
+          "behavior": "inset-swipe",
+          "position": "relative"
+        }
+      ]
     ],
     "extra": {
       "router": {},
@@ -85,9 +45,7 @@
       }
     },
     "owner": "ucmobileapk",
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -97,4 +55,3 @@
     "platforms": ["ios", "android"]
   }
 }
-

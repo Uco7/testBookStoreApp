@@ -229,13 +229,29 @@ import * as Sharing from "expo-sharing";
 import * as Linking from "expo-linking";
 import * as IntentLauncher from "expo-intent-launcher";
 import { useRouter } from "expo-router";
-
+import InputTheme from "../../component/InputTheme";
+import RowItemsTheme from "../../component/RowItemsTheme";
+import CardTheme from "../../component/CardTheme";
+import { useUser } from "../../hook/useUser";
+import { ActivityIndicator } from "react-native";
 export default function Book() {
-  const { books, fetchBooks, deleteBook } = useBook();
+  const { books, fetchBooks, deleteBook, } = useBook();
+  const {authReady}=useUser()
   const router = useRouter();
 
   const [selectedType, setSelectedType] = useState("All");
   const [search, setSearch] = useState("");
+   if (!authReady) {
+    return (
+      <ThemeView style={styles.centered}>
+        {/* <ThemeText>Loading...</ThemeText> */}
+        <ActivityIndicator
+        size={20}
+        color="#4f46e5"
+        />
+      </ThemeView>
+    );
+  }
 
   useEffect(() => {
     fetchBooks();
@@ -328,7 +344,7 @@ export default function Book() {
   }, [books, selectedType, search]);
 
   const renderItem = ({ item }) => (
-    <View style={styles.card}>
+    <CardTheme style={styles.card}>
       <ThemeText style={styles.title}>Title: {item.title}</ThemeText>
       <ThemeText style={styles.author}>Author: {item.author}</ThemeText>
       <ThemeText style={styles.desc}>
@@ -337,7 +353,7 @@ export default function Book() {
 
       <Spacer />
 
-      <View style={styles.iconRow}>
+      <RowItemsTheme style={styles.iconRow}>
         <Pressable onPress={() => openFile(item)} style={styles.iconButton}>
           <Ionicons name="book-outline" size={24} color={colors.primary} />
           <ThemeText style={styles.iconText}>Open</ThemeText>
@@ -352,17 +368,17 @@ export default function Book() {
           <Ionicons name="trash-outline" size={24} color="#FF4B5C" />
           <ThemeText style={styles.iconText}>Delete</ThemeText>
         </Pressable>
-      </View>
-    </View>
+      </RowItemsTheme>
+    </CardTheme>
   );
 
   return (
-    <ThemeView style={styles.container}>
+    <ThemeView style={styles.container} safe={true}>
       <ThemeText style={styles.heading}>My Library</ThemeText>
 
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="#888" />
-        <TextInput
+        <InputTheme
           placeholder="Search..."
           placeholderTextColor="#888"
           style={styles.searchInput}
@@ -371,7 +387,7 @@ export default function Book() {
         />
       </View>
 
-      <View style={styles.row}>
+      <RowItemsTheme style={styles.row}>
         <ThemeButton
           onPress={() => setSelectedType("All")}
           style={[styles.typeBtn, selectedType === "All" && styles.typeBtnActive]}
@@ -401,7 +417,7 @@ export default function Book() {
             <ThemeText style={styles.btnText}>Doc</ThemeText>
           </View>
         </ThemeButton>
-      </View>
+      </RowItemsTheme>
 
       <FlatList
         data={filteredBooks}
@@ -419,27 +435,27 @@ export default function Book() {
 
 const styles = StyleSheet.create({
   container: { padding: 12 },
-  heading: { fontSize: 24, fontWeight: "bold", color: "white", marginBottom: 12 },
+  heading: { fontSize: 24, fontWeight: "bold",  marginBottom: 10 ,marginVertical:15,textAlign:"center"},
 
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.uiBackground,
+    // backgroundColor: colors.uiBackground,
     borderRadius: 50,
     borderWidth: 1,
-    borderColor: "#7d7575ff",
+    // borderColor: "#7d7575ff",
     paddingHorizontal: 15,
     height: 50,
     marginBottom: 12,
   },
-  searchInput: { flex: 1, color: "white", marginLeft: 10 },
+  searchInput: { flex: 1,  marginLeft: 10 },
 
    row: {
     width: "90%",
-    flexDirection: "row",
-    gap: 10,
-    // overflow: "hidden",
-    // marginVertical: 10,
+    // flexDirection: "row",
+    // gap: 10,
+    // // overflow: "hidden",
+    marginVertical: 10,
     marginHorizontal: 20,
     
     marginTop: 20,
@@ -461,23 +477,24 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   btnText: {
-    fontSize: 10,
+    fontSize: 11,
     color: "#fff",
   },
 
   card: {
-    backgroundColor: colors.uiBackground,
-    borderRadius: 12,
-    padding: 12,
+    // backgroundColor: colors.uiBackground,
+    // borderRadius: 12,
+    // padding: 12,
     marginVertical: 6,
-    borderWidth: 1,
-    borderColor: "#222",
+    marginHorizontal:20,
+    // borderWidth: 1,
+    // borderColor: "#222",
   },
-  title: { color: "white", fontWeight: "bold", fontSize: 16, marginBottom: 4 },
-  author: { color: "#aaa", fontSize: 12, marginBottom: 4 },
-  desc: { color: "#ccc", fontSize: 12 },
+  title: {  fontWeight: "bold", fontSize: 16, marginBottom: 4 },
+  author: {  fontSize: 12, marginBottom: 4 },
+  desc: {  fontSize: 12 },
 
   iconRow: { flexDirection: "row", marginTop: 10 },
   iconButton: { flexDirection: "row", alignItems: "center", marginRight: 20 },
-  iconText: { marginLeft: 6, color: "white" },
+  iconText: { marginLeft: 6, fontSize:14,fontWeight:"600" },
 });

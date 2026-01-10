@@ -12,6 +12,7 @@ import * as DocumentPicker from "expo-document-picker";
 import { useBook } from "../../hook/useBook";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import CardTheme from "../../component/CardTheme";
 
 export default function UpdateBook() {
   const router = useRouter();
@@ -49,12 +50,12 @@ export default function UpdateBook() {
       <ThemeView style={styles.container} safe={true}>
 
         {/* Card */}
-        <View style={styles.card}>
+        <CardTheme style={styles.card}>
 
           {/* Header */}
           <View style={styles.header}>
             <Ionicons name="arrow-back" size={22} color="#fff" onPress={() => router.back()} />
-            <ThemeText style={styles.headerTitle}>Update Book</ThemeText>
+            <ThemeText style={styles.headerTitle}>Update(File/doc/link) </ThemeText>
             <View style={{ width: 22 }} /> 
           </View>
 
@@ -79,7 +80,7 @@ export default function UpdateBook() {
             onPress={pickFile}
             style={{ width: "90%", marginLeft: "auto", marginRight: "auto" }}
           >
-            <ThemeText>{file ? file.name : "Pick New File (optional)"}</ThemeText>
+            <ThemeText style={{color:"#fff"}}>{file ? file.name : "Pick New File (optional)"}</ThemeText>
           </ThemeButton>
            {/* <Spacer /> */}
 
@@ -96,10 +97,10 @@ export default function UpdateBook() {
 
           {/* Submit button */}
 
-        </View>
+        </CardTheme>
           <Spacer height={16} />
           <ThemeButton onPress={handleSubmit} style={{ alignItems: "center" }}>
-            <ThemeText>Update Book</ThemeText>
+            <ThemeText style={{color:"#fff"}}>Update Book</ThemeText>
           </ThemeButton>
 
       </ThemeView>
@@ -117,10 +118,10 @@ const styles = StyleSheet.create({
     width: "90%",
     paddingVertical: 28,
     paddingHorizontal: 20,
-    borderRadius: 26,
-    backgroundColor: "rgba(255,255,255,0.05)",
+    // borderRadius: 26,
+    // backgroundColor: "rgba(255,255,255,0.05)",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.15)",
+    // borderColor: "rgba(255,255,255,0.15)",
   },
   header: {
     flexDirection: "row",
@@ -131,7 +132,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 18,
     fontWeight: "600",
-    color: "#fff",
+    // color: "#fff",
   },
 });
 

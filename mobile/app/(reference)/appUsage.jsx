@@ -2,6 +2,7 @@ import { StyleSheet, View, ScrollView } from "react-native";
 import ThemeView from "../../component/ThemeView";
 import ThemeText from "../../component/ThemeText";
 import Spacer from "../../component/Spacer";
+import CardTheme from "../../component/CardTheme";
 
 export default function AppUsage() {
   return (
@@ -14,50 +15,50 @@ export default function AppUsage() {
       <Spacer height={20} />
 
       <ScrollView contentContainerStyle={styles.list}>
-        <View style={styles.card}>
+        <CardTheme style={styles.card}>
           <ThemeText style={styles.stepTitle}>1. Create an Account</ThemeText>
           <ThemeText style={styles.stepText}>
             Register or log in so your library is saved to your account.
           </ThemeText>
-        </View>
+        </CardTheme>
 
-        <View style={styles.card}>
+        <CardTheme style={styles.card}>
           <ThemeText style={styles.stepTitle}>2. Add Books</ThemeText>
           <ThemeText style={styles.stepText}>
             Go to "Create Book", choose the type (reading, doc, or link), then
             fill in the details and save.
           </ThemeText>
-        </View>
+        </CardTheme>
 
-        <View style={styles.card}>
+        <CardTheme style={styles.card}>
           <ThemeText style={styles.stepTitle}>3. Manage Your Library</ThemeText>
           <ThemeText style={styles.stepText}>
-            Open "My Library" to view, update, delete, or open your books.
+            Open "My Library" to CardTheme, update, delete, or open your books.
           </ThemeText>
-        </View>
+        </CardTheme>
 
-        <View style={styles.card}>
+        <CardTheme style={styles.card}>
           <ThemeText style={styles.stepTitle}>4. Upload or Link Files</ThemeText>
           <ThemeText style={styles.stepText}>
             Upload PDFs, docs, or paste file links depending on your needs.
           </ThemeText>
-        </View>
+        </CardTheme>
 
-        <View style={styles.card}>
+        <CardTheme style={styles.card}>
           <ThemeText style={styles.stepTitle}>5. Edit or Delete Books</ThemeText>
           <ThemeText style={styles.stepText}>
             Use the edit and delete icons on each book card to manage your
             collection.
           </ThemeText>
-        </View>
+        </CardTheme>
 
-        <View style={styles.card}>
+        <CardTheme style={styles.card}>
           <ThemeText style={styles.stepTitle}>6. Get Help or Send Feedback</ThemeText>
           <ThemeText style={styles.stepText}>
             Use the Help or Feedback options in the navigation if you need
             assistance or want to contact support.
           </ThemeText>
-        </View>
+        </CardTheme>
       </ScrollView>
     </ThemeView>
   );

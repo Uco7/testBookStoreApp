@@ -74,6 +74,8 @@ import { Link, useRouter } from 'expo-router';
 import { colors } from '../../constant/colors';
 import InputTheme from '../../component/InputTheme';
 import { useUser } from '../../hook/useUser';
+import KeyBordAvoidingComponent from '../../component/KeyBordAvoidingComponent';
+import CardTheme from '../../component/CardTheme';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
@@ -150,8 +152,12 @@ export default function Login() {
   };
 
   return (
+    <KeyBordAvoidingComponent>
+
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <ThemeView style={styles.container}>
+      <ThemeView style={styles.container} safe={true}>
+        <CardTheme style={styles.card}>
+
         <ThemeText>Login Page</ThemeText>
 
         <Spacer />
@@ -173,7 +179,7 @@ export default function Login() {
           autoCapitalize="none"
           onChangeText={setPassword}
           value={password}
-        />
+          />
 
         <Spacer />
 
@@ -196,12 +202,14 @@ export default function Login() {
           <Link
             href="/register"
             style={{ color: colors.primary, fontSize: 20, fontWeight: '600' }}
-          >
+            >
             Here
           </Link>
         </ThemeText>
+            </CardTheme>
       </ThemeView>
     </TouchableWithoutFeedback>
+          </KeyBordAvoidingComponent>
   );
 }
 const styles = StyleSheet.create({
@@ -214,5 +222,10 @@ const styles = StyleSheet.create({
     marginTop: 10,
     maxWidth: '80%',
   
+  },
+  card:{
+    justifyContent:"center",
+    alignItems:"center"
   }
+
 });

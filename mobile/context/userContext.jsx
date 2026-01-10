@@ -36,10 +36,11 @@ export function UserProvider({ children }) {
   async function login(identifier, password) {
     try {
       const res = await api.post("/login", { identifier, password });
+      // console.log("res:",res)
       await AsyncStorage.setItem("token", res.data.token);
       await fetchUser();
     } catch (err) {
-      throw new Error(err.response?.data?.msg || "Login failed");
+      throw new Error(err.response?.data?.msg || "Login failed"||"poor Network: check your networkconnection");
     }
   }
 
@@ -47,7 +48,7 @@ export function UserProvider({ children }) {
     try {
       const token = await getToken();
       if (!token) {
-        setAuthReady(true);
+        setAuthReady(false);
         return;
       }
 
