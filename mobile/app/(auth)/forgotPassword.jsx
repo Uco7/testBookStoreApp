@@ -125,6 +125,7 @@ export default function ForgotPassword() {
                 <InputTheme
                   placeholder="New Password"
                   style={{ width: '100%' }}
+                  autoCapitalize="none"
                   secureTextEntry={!showPassword}
                   onChangeText={setPassword}
                   value={password}
