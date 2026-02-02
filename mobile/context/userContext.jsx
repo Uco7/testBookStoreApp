@@ -121,7 +121,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
 // Update this to your local IP or production URL
-const APPURl = "http://192.168.150.202:5000";
+// const APPURl = "http://192.168.150.202:5000";
+let APPURl="https://testbookstoreapp.onrender.com";
+
 const API_TIMEOUT = 10000;
 
 export const UserContext = createContext();

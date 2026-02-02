@@ -11,8 +11,11 @@ import { colors } from '../constant/colors';
 import CardTheme from '../component/CardTheme';
 import RowItemsTheme from '../component/RowItemsTheme';
 import PressableComponent from '../component/PressableComponent';
+import { useAppUpdate } from '../hook/appUpdate.js'
 
 const HomeScreen = () => {
+    const { updateChecked } = useAppUpdate(); // 🔥 triggers update check
+
 const scheme = useColorScheme();
 const theme = colors[scheme] ?? colors.light;
  
