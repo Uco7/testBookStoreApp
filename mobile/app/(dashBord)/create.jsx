@@ -199,6 +199,8 @@ export default function Create() {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1, // <--- Add this to ensure it fills the screen
+    width: '100%',
     justifyContent: "center",
     alignItems: "center",
   },

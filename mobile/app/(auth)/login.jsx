@@ -1,70 +1,6 @@
-// import { Keyboard, StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native'
-// import React from 'react'
-// import ThemeView from '../../component/ThemeView'
-// import ThemeText from '../../component/ThemeText'
-// import ThemeButton from '../../component/ThemeButton'
-// import Spacer from '../../component/Spacer'
-// import { Link } from 'expo-router'
-// import { colors } from '../../constant/colors'
-// import { useState } from 'react'
-// import InputTheme from '../../component/InputTheme'
 
 
-// const login = () => {
-//     const [email,setEmail]=useState("")
-//       const [password,setPassword]=useState("")
-//   return (
-//     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-
-//     <ThemeView>
-//       <ThemeText>Login Page</ThemeText>
-//       <Spacer/>
-//          <InputTheme placeholder="user Email"
-//       style={{width:"80%"}}
-//       keyboardType="email"
-//       autoCapitalize="none"
-//       onChangeText={setEmail}
-//       value={email}
-      
-//       />
-//       <Spacer/>
-//       <InputTheme placeholder="user password"
-//       style={{width:"80%"}}
-//       keyboardType="password"
-//       autoCapitalize="none"
-//       secureTextEntry={true}
-//       onChangeText={setPassword}
-//       value={password}
-      
-//       />
-//       <Spacer/>
-//       <ThemeButton>
-//         <Text style={{color:"#fff",fontSize:20,fontWeight:"600"}}> Login</Text>
-
-//       </ThemeButton>
-//       <Spacer/>
-//       <Text>Dont have an account? register <Link href="/register" style={{color:colors.primary,
-//       fontSize:20,
-//       fontWeight:"600"
-//       }}
-      
-      
-//       >Here</Link></Text>
-
-//     </ThemeView>
-//       </TouchableWithoutFeedback>
-//   )
-
-
-// }
-
-// export default login
-
-// const styles = StyleSheet.create({})
-
-
-
-import { Keyboard, StyleSheet, Text, TouchableWithoutFeedback } from 'react-native';
+import { Keyboard, StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native';
 import React, { useState } from 'react';
 import ThemeView from '../../component/ThemeView';
 import ThemeText from '../../component/ThemeText';
@@ -76,6 +12,8 @@ import InputTheme from '../../component/InputTheme';
 import { useUser } from '../../hook/useUser';
 import KeyBordAvoidingComponent from '../../component/KeyBordAvoidingComponent';
 import CardTheme from '../../component/CardTheme';
+import { TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
@@ -84,55 +22,61 @@ const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)[^\s]{8,64}$/;
 const MAX_IDENTIFIER_LENGTH = 120;
 const MAX_PASSWORD_LENGTH = 128;
 
+/* ------------------ helpers ------------------ */
+
+// Only normalize identifiers (email / username)
+const normalizeIdentifier = (value) => value.trim();
+
+// Pure validation (no mutation)
+const validate = (identifier, password) => {
+  if (!identifier || !password) return 'All fields are required.';
+
+  if (identifier.length > MAX_IDENTIFIER_LENGTH)
+    return 'Identifier is too long.';
+
+  if (password.length > MAX_PASSWORD_LENGTH)
+    return 'Password is too long.';
+
+  const isEmail = EMAIL_REGEX.test(identifier);
+  const isUsername = USERNAME_REGEX.test(identifier);
+
+  if (!isEmail && !isUsername)
+    return 'Enter a valid email or username.';
+
+  if (!PASSWORD_REGEX.test(password))
+    return 'Password must be at least 8 characters and include letters and numbers.';
+
+  return null;
+};
+
+/* ------------------ component ------------------ */
+
 export default function Login() {
-  const [identifier, setIdentifier] = useState(""); // email OR username
-  const [password, setPassword] = useState("");
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [attempts, setAttempts] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
 
   const router = useRouter();
   const { login } = useUser();
-
-  const sanitize = (value) =>
-    value.replace(/[<>\/\\$;]/g, "").trim();
-
-  const validate = () => {
-    if (!identifier || !password) return "All fields are required.";
-
-    if (identifier.length > MAX_IDENTIFIER_LENGTH)
-      return "Identifier is too long.";
-
-    if (password.length > MAX_PASSWORD_LENGTH)
-      return "Password is too long.";
-
-    const isEmail = EMAIL_REGEX.test(identifier);
-    const isUsername = USERNAME_REGEX.test(identifier);
-
-    if (!isEmail && !isUsername)
-      return "Enter a valid email or username.";
-
-    if (!PASSWORD_REGEX.test(password))
-      return "Password must be at least 8 characters with letters and numbers.";
-
-    return null;
-  };
 
   const handleSubmit = async () => {
     if (loading) return;
 
     if (attempts >= 5) {
-      setError("Too many failed attempts. Try again later.");
+      setError('Too many failed attempts. Try again later.');
       return;
     }
 
     setError(null);
     setLoading(true);
 
-    const cleanIdentifier = sanitize(identifier);
-    const cleanPassword = sanitize(password);
+    const cleanIdentifier = normalizeIdentifier(identifier);
+    const cleanPassword = password; // ❗ NEVER sanitize passwords
 
-    const validationError = validate();
+    const validationError = validate(cleanIdentifier, cleanPassword);
     if (validationError) {
       setError(validationError);
       setLoading(false);
@@ -141,11 +85,28 @@ export default function Login() {
 
     try {
       await login(cleanIdentifier, cleanPassword);
-      router.replace("/profile");
+      router.replace('/profile');
     } catch (err) {
-      console.warn("Login error:", err?.message || err);
       setAttempts((prev) => prev + 1);
-      setError("Login failed. Please check your credentials.");
+
+      let errorMessage = 'An unexpected error occurred.';
+
+      if (err.message === 'Network Error') {
+        errorMessage =
+          'Connection failed. Please check your internet or network status.';
+      } else if (err.response) {
+        errorMessage =
+          err.response.data?.message ||
+          err.response.data?.msg ||
+          'Login failed.';
+      } else if (err.request) {
+        errorMessage =
+          'Server is not responding. Please try again later.';
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -154,7 +115,7 @@ export default function Login() {
   return (
     <KeyBordAvoidingComponent>
 
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <ThemeView style={styles.container} safe={true}>
         <CardTheme style={styles.card}>
 
@@ -164,22 +125,36 @@ export default function Login() {
 
         <InputTheme
           placeholder="Email or Username"
-          style={{ width: '80%' }}
+          style={{ width: '100%' }}
           autoCapitalize="none"
           onChangeText={setIdentifier}
           value={identifier}
         />
 
         <Spacer />
+        <View style={ styles.eyeContainer}>
+
 
         <InputTheme
           placeholder="Password"
-          style={{ width: '80%' }}
-          secureTextEntry
+          style={{ width: '100%' }}
+          secureTextEntry={!showPassword}
           autoCapitalize="none"
           onChangeText={setPassword}
           value={password}
           />
+          <TouchableOpacity 
+          onPress={()=>setShowPassword(!showPassword)}
+          style={styles.eyeIcon}
+          >
+            <Ionicons
+            name={showPassword?"eye-off":"eye"}
+            size={20}
+            color="#aaa"
+            
+            />
+          </TouchableOpacity>
+          </View>
 
         <Spacer />
 
@@ -197,21 +172,22 @@ export default function Login() {
 
         <ThemeText>
           <Text style={{ fontSize: 14 }}>
-            Don't have an account? Register{" "}
+            Forgot your password{" "}
           </Text>
           <Link
-            href="/register"
+            href="/forgotPassword"
             style={{ color: colors.primary, fontSize: 20, fontWeight: '600' }}
             >
-            Here
+            Click
           </Link>
         </ThemeText>
             </CardTheme>
       </ThemeView>
-    </TouchableWithoutFeedback>
-          </KeyBordAvoidingComponent>
+      </TouchableWithoutFeedback>
+      </KeyBordAvoidingComponent>
   );
 }
+
 const styles = StyleSheet.create({
     container: { justifyContent: "center", alignItems: "center" },
 
@@ -226,6 +202,20 @@ const styles = StyleSheet.create({
   card:{
     justifyContent:"center",
     alignItems:"center"
+  },
+  eyeContainer:{
+    width:"100%",
+    justifyContent:"center",
+    alignItems:"center",
+    position:"relative"
+
+  },
+  eyeIcon:{
+    position:"absolute",
+    
+     right: 15,
+    zIndex: 1,
+
   }
 
 });

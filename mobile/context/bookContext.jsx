@@ -41,8 +41,8 @@ import { createContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
-let APPURl="https://testbookstoreapp.onrender.com";
-// const APP_URL = "http://192.168.1.202:5000";
+// let APPURl="https://testbookstoreapp.onrender.com";
+const APPURl = "http://192.168.150.202:5000";
 
 export const BookContext = createContext();
 

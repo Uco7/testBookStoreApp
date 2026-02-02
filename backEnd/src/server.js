@@ -12,6 +12,7 @@ import bookRoutes from "./routes/bookRoute.js";
 const app = express();
 
 
+dbconection();
 app.use(cors());
 app.use(express.json());
 app.set("trust proxy", true);
@@ -22,6 +23,10 @@ console.log("ENV check:", {
   jwt: process.env.JWT_SECRET,
   cloud_name: process.env.CLOUDINARY_NAME
 });
+app.get("/test", (req, res) => {
+  console.log("Test route hit");
+  res.send("OK");
+});
 
 app.use( authRoutes);
 
@@ -29,6 +34,5 @@ app.use( bookRoutes);
 
 
 
-dbconection();
 
 app.listen(5000,()=>console.log("Server running on port 5000")); 

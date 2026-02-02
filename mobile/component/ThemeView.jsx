@@ -71,6 +71,8 @@ const ThemeView = ({ style, safe = false, ...props }) => {
 export default ThemeView;
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1,
+    height:"100%"
+   },
 });
 
