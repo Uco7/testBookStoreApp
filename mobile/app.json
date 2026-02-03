@@ -60,7 +60,7 @@
   "expo": {
     "name": "BookStore",
     "slug": "bookstore",
-    "version": "1.0.0",                // Semantic version
+    "version": "1.0.1",                // Semantic version
     "runtimeVersion": {
       "policy": "appVersion"           // ✅ This tells Expo OTA to track version
     },

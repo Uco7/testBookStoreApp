@@ -18,7 +18,7 @@ const latestAppInfo = {
     version: "1.1.0",
     build: 2,
     otaEnabled: true,
-    downloadUrl: "https://github.com/Uco7/testBookStoreApp/releases/download/v1.0.0/application-7ba02d64-8daf-4217-8d6a-8ec56ff85929.apk",
+    downloadUrl: "https://github.com/Uco7/testBookStoreApp/releases/download/v1.0.0/application-ac525880-6b6b-4523-a41c-1eb0d412f72f.apk",
     mandatory: false,
   },
   ios: {
