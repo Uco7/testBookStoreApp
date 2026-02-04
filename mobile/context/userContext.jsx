@@ -152,6 +152,7 @@ export function UserProvider({ children }) {
         email, 
         password 
       });
+      console.log("OTP Request Response:", res);
       return res.data;
     } catch (err) {
       console.log("OTP Request Error:", err.response?.data || err.message);
@@ -165,6 +166,7 @@ export function UserProvider({ children }) {
       const res = await api.post("/register", { email, otp });
       // Note: If your backend returns a token immediately after verification, 
       // you can log them in here. Otherwise, they go to login screen.
+      console.log("Verification Response:", res);
       return res.data;
     } catch (err) {
       console.log("Verification Error:", err.response?.data || err.message);
