@@ -290,7 +290,7 @@ export const requestRegistration = async (req, res) => {
       },
       { upsert: true, new: true }
     );
-
+console.log("OTP generated and temporary user saved:", { email: cleanEmail, otp });
     // Respond immediately (non-blocking)
     res.status(200).json({ message: "Verification code sent to email" });
 
@@ -300,7 +300,7 @@ export const requestRegistration = async (req, res) => {
       subject: "Verify Your Account",
       message: `Your verification code is ${otp}. It expires in 15 minutes.`,
     }).catch((err) => console.error("Email send failed:", err));
-
+console.log("OTP Request Response:", res);
   } catch (err) {
     console.error("OTP Request Error:", err);
     return res.status(500).json({ message: "Failed to send verification code" });
