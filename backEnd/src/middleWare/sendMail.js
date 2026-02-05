@@ -1,21 +1,32 @@
+import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 dotenv.config();
 
-import { Resend } from "resend";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+  service: "Gmail", // Or "SMTP" if using another provider
+  auth: {
+    user: process.env.EMAIL,
+    pass: process.env.EMAIL_PASSWORD, // App password for Gmail or SMTP password
+  },
+});
 
 const sendEmail = async ({ email, subject, message }) => {
-  if (!process.env.RESEND_API_KEY) {
-    throw new Error("RESEND_API_KEY is not set");
-  }
+  try {
+    const mailOptions = {
+      from: `"Bookstore App" <${process.env.EMAIL}>`,
+      to: email,
+      subject,
+      text: message,
+      // optional: html: "<p>HTML version of your message</p>"
+    };
 
-  return await resend.emails.send({
-    from: "Bookstore <onboarding@resend.dev>",
-    to: email,
-    subject,
-    text: message,
-  });
+    const info = await transporter.sendMail(mailOptions);
+    console.log("✅ Email sent:", info.messageId);
+    return info;
+  } catch (err) {
+    console.error("❌ Email send failed:", err);
+    throw err;
+  }
 };
 
 export default sendEmail;

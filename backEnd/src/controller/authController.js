@@ -296,9 +296,9 @@ console.log("OTP generated and temporary user saved:", { email: cleanEmail, otp 
 
     // Send OTP email in background
     sendEmail({
-      email: cleanEmail,
-      subject: "Verify Your Account",
-      message: `Your verification code is ${otp}. It expires in 15 minutes.`,
+       email: cleanEmail,
+  subject: "Verify Your Account",
+  message: `Your verification code is ${otp}. It expires in 15 minutes.`,
     }).catch((err) => console.error("Email send failed:", err));
 console.log("OTP Request Response:", res);
   } catch (err) {
@@ -306,6 +306,8 @@ console.log("OTP Request Response:", res);
     return res.status(500).json({ message: "Failed to send verification code" });
   }
 };
+
+
 
 /* ---------- Registration Step 2: Verify & Create ---------- */
 export const verifyAndRegister = async (req, res) => {
