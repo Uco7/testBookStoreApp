@@ -37,14 +37,14 @@ const userSchema = new mongoose.Schema({
     select: false // Ensures password isn't leaked in general queries
   },
   // --- OTP Logic Fields ---
-  resetPasswordOTP: { 
-    type: String, 
-    default: null 
-  },
-  resetPasswordExpires: { 
-    type: Date, 
-    default: null 
-  }
+  // resetPasswordOTP: { 
+  //   type: String, 
+  //   default: null 
+  // },
+  // resetPasswordExpires: { 
+  //   type: Date, 
+  //   default: null 
+  // }
 }, { timestamps: true });
 
 export default mongoose.model("User", userSchema);
