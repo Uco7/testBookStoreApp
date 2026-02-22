@@ -56,35 +56,105 @@
 //   }
 // }
 
+
+
+// {
+//   "expo": {
+//     "name": "BookStore",
+//     "slug": "bookstore",
+//     "version": "1.0.1",                // Semantic version
+//     "runtimeVersion": {
+//       "policy": "appVersion"           // ✅ This tells Expo OTA to track version
+//     },
+//     "orientation": "portrait",
+//     "scheme": "bookstore",
+//     "icon": "./assets/logo.jpeg",
+//     "userInterfaceStyle": "light",
+//     "newArchEnabled": true,
+//     "splash": {
+//       "image": "./assets/logo.jpeg",
+//       "resizeMode": "contain",
+//       "backgroundColor": "#ffffff"
+//     },
+//     "ios": {
+//       "supportsTablet": true
+//     },
+//     "android": {
+//       "adaptiveIcon": {
+//         "foregroundImage": "./assets/logo.jpeg",
+//         "backgroundColor": "#ffffff"
+//       },
+//       "edgeToEdgeEnabled": false,
+//       "package": "com.ucmobileapk.bookstore"
+//     },
+//     "plugins": [
+//       "expo-router",
+//       [
+//         "expo-navigation-bar",
+//         {
+//           "backgroundColor": "#0f172a",
+//           "barStyle": "light",
+//           "borderColor": "#1f2937",
+//           "visibility": "visible",
+//           "behavior": "inset-swipe",
+//           "position": "relative"
+//         }
+//       ]
+//     ],
+//     "extra": {
+//       "router": {},
+//       "eas": {
+//         "projectId": "b5d2bc8a-2cf0-43e8-af7f-1dd462a7d389"
+//       }
+//     },
+//     "owner": "ucmobileapk",
+//     "assetBundlePatterns": ["**/*"],
+//     "updates": {
+//       "url": "https://u.expo.dev/b5d2bc8a-2cf0-43e8-af7f-1dd462a7d389"
+//     },
+//     "platforms": ["ios", "android"]
+//   }
+// }
+
+
+
 {
   "expo": {
     "name": "BookStore",
     "slug": "bookstore",
-    "version": "1.0.1",                // Semantic version
+    "version": "1.0.1",
+
     "runtimeVersion": {
-      "policy": "appVersion"           // ✅ This tells Expo OTA to track version
+      "policy": "appVersion"
     },
+
     "orientation": "portrait",
     "scheme": "bookstore",
     "icon": "./assets/logo.jpeg",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+
     "splash": {
       "image": "./assets/logo.jpeg",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "buildNumber": "2"
     },
+
     "android": {
+      "package": "com.ucmobileapk.bookstore",
+      "versionCode": 2,
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo.jpeg",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": false,
-      "package": "com.ucmobileapk.bookstore"
+      "edgeToEdgeEnabled": false
     },
+
     "plugins": [
       "expo-router",
       [
@@ -99,17 +169,21 @@
         }
       ]
     ],
+
+    "updates": {
+      "url": "https://u.expo.dev/b5d2bc8a-2cf0-43e8-af7f-1dd462a7d389"
+    },
+
+    "assetBundlePatterns": ["**/*"],
+
     "extra": {
       "router": {},
       "eas": {
         "projectId": "b5d2bc8a-2cf0-43e8-af7f-1dd462a7d389"
       }
     },
+
     "owner": "ucmobileapk",
-    "assetBundlePatterns": ["**/*"],
-    "updates": {
-      "url": "https://u.expo.dev/b5d2bc8a-2cf0-43e8-af7f-1dd462a7d389"
-    },
     "platforms": ["ios", "android"]
   }
 }

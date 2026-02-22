@@ -1,4 +1,4 @@
-// hook/appUpdate.js
+// hooks/useAppUpdate.js
 import { useEffect, useState } from "react";
 import { Alert, Platform, Linking } from "react-native";
 import Constants from "expo-constants";
@@ -9,39 +9,45 @@ export const useAppUpdate = () => {
 
   const checkForUpdate = async () => {
     try {
-      const response = await fetch(`https://testbookstoreapp.onrender.com/app/version?platform=${Platform.OS}`);
+      const response = await fetch(
+        `https://testbookstoreapp.onrender.com/app/version?platform=${Platform.OS}`
+      );
       const data = await response.json();
 
-     const currentVersion = Constants.expoConfig?.version || "1.0.0";
-const currentBuild = parseInt(
-  Constants.expoConfig?.android?.versionCode || Constants.expoConfig?.ios?.buildNumber || 1
-);
+      const currentVersion = Constants.nativeAppVersion || "1.0.0";
+      const currentBuild = parseInt(Constants.nativeBuildVersion || "1", 10);
 
-
+      // 🔴 Native update required
       if (data.build > currentBuild) {
         if (Platform.OS === "android" && data.downloadUrl) {
           Alert.alert(
             "Update Available",
-            "A new version is available. Update to continue.",
+            "A new version is available. Please update to continue.",
             [
-              { text: "Update Now", onPress: () => Linking.openURL(data.downloadUrl) },
-              { text: "Later", style: "cancel" },
+              {
+                text: "Update Now",
+                onPress: () => Linking.openURL(data.downloadUrl),
+              },
             ],
             { cancelable: !data.mandatory }
           );
-        } else if (data.otaEnabled) {
-          const update = await Updates.checkForUpdateAsync();
-          if (update.isAvailable) {
-            await Updates.fetchUpdateAsync();
-            Alert.alert(
-              "Update Ready",
-              "A new update is ready. Restart to apply changes?",
-              [
-                { text: "Restart", onPress: () => Updates.reloadAsync() },
-                { text: "Later", style: "cancel" },
-              ]
-            );
-          }
+        }
+        return;
+      }
+
+      // 🟢 OTA update (same build only)
+      if (data.otaEnabled && Updates.isEnabled) {
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          Alert.alert(
+            "Update Ready",
+            "A new update is ready. Restart now?",
+            [
+              { text: "Restart", onPress: () => Updates.reloadAsync() },
+              { text: "Later", style: "cancel" },
+            ]
+          );
         }
       }
     } catch (err) {
