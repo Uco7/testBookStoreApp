@@ -41,7 +41,9 @@ const handleFeedback = () => {
       
       {/* Top Navigation */}
       <RowItemsTheme style={styles.nav}>
+        
         <Link href="/questionsScreen">
+        
         <ThemeText style={styles.navTitle}>
           Asked Questions
           <Ionicons name="help-circle" size={24} color={theme.iconColorFocused
@@ -50,13 +52,17 @@ const handleFeedback = () => {
         </ThemeText>
         </Link>
          
-        <View onPress={handleFeedback}>
-          <ThemeText style={styles.navTitle}>FeedBack
-          <Ionicons name="chatbubble-ellipses-outline" size={24} color={theme.iconColorFocused
-} />
-
-          </ThemeText>
-        </View>
+        <PressableComponent onPress={handleFeedback} style={{borderWidth: 0,
+    borderColor: "transparent",}}>
+  <ThemeText style={styles.navTitle}>
+    FeedBack{" "}
+    <Ionicons
+      name="chatbubble-ellipses-outline"
+      size={24}
+      color={theme.iconColorFocused}
+    />
+  </ThemeText>
+</PressableComponent>
       </RowItemsTheme>
 
       {/* Top guidance */}
