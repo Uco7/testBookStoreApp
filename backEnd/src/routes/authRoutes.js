@@ -15,14 +15,14 @@ router.get("/user", authMiddleware, getUser);
 // App version route
 const latestAppInfo = {
   android: {
-    version: "1.1.0",
+    version: "1.0.1",
     build: 2,
     otaEnabled: true,
-    downloadUrl: "https://github.com/Uco7/testBookStoreApp/releases/download/v1.0.0/application-ac525880-6b6b-4523-a41c-1eb0d412f72f.apk",
+    downloadUrl: "https://github.com/Uco7/testBookStoreApp/releases/download/v1.0.1/application-c93dcff6-ed2f-4166-a293-5c50b55786c0.apk",
     mandatory: false,
   },
   ios: {
-    version: "1.1.0",
+    version: "1.0.1",
     build: 2,
     otaEnabled: true,
     downloadUrl: "",
