@@ -29,6 +29,7 @@ export default function Create() {
   const [description, setDescription] = useState("");
   const [file, setFile] = useState(null);
   const [fileLink, setFileLink] = useState("");
+  const [status, setStatus] = useState("idle"); // idle | uploading | error
 
   const { createBook } = useBook();
   const router = useRouter();
@@ -58,7 +59,8 @@ export default function Create() {
     if (selectedType === "link" && !fileLink) {
       return Alert.alert("Error", "Link required for this type");
     }
-
+if (status !== "idle") return; // Prevent double submission
+    setStatus("saving...");
     try {
       const ok = await createBook({
         title,
@@ -69,18 +71,28 @@ export default function Create() {
       });
 
       if (!ok) throw new Error("Book creation failed");
+      setStatus("saved");
+      setTimeout(() => {
 
       setTitle("");
       setAuthor("");
       setDescription("");
       setFile(null);
       setFileLink("");
+      setStatus("idle");
       router.replace("/book");
+      }, 1500);
     } catch (err) {
+      setStatus("idle");
       Alert.alert("Upload Failed", err.message || "Try again");
     }
   };
 
+  const renderButtonText = () => {
+  if (status === "saving...") return "Saving...";
+  if (status === "saved") return "Saved🎉";
+  return "Save Book";
+};
   return (
       <KeyBordAvoidingComponent>
          <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
@@ -143,7 +155,7 @@ export default function Create() {
           {(selectedType === "doc" || selectedType === "reading") && (
             <>
               <InputTheme
-                placeholder="Author Name(optional)"
+                placeholder="Author Name"
                 value={author}
                 onChangeText={setAuthor}
               />
@@ -186,9 +198,19 @@ export default function Create() {
 
         <Spacer height={16} />
 
-        <ThemeButton onPress={handleSubmit} style={{ alignItems: "center" }}>
-          <ThemeText style={{color:"#fff"}}>Save Book</ThemeText>
-        </ThemeButton>
+      <ThemeButton 
+  onPress={handleSubmit} 
+  style={{ 
+    alignItems: "center",
+    // Button turns Gray when saving, Green when saved
+    backgroundColor: status === "saved" ? "#10b981" : status === "saving" ? "#64748b" : colors.primary 
+  }}
+  disabled={status !== "idle"}
+>
+  <ThemeText style={{ color: "#fff", fontWeight: '600' }}>
+    {renderButtonText()}
+  </ThemeText>
+</ThemeButton>
 
       </ThemeView>
       </Pressable>
