@@ -20,6 +20,7 @@ import { useBook } from "../../hook/useBook";
 import { Ionicons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system/legacy";
 import { useRouter } from "expo-router";
+import * as Linking from "expo-linking";
 import InputTheme from "../../component/InputTheme";
 import RowItemsTheme from "../../component/RowItemsTheme";
 import CardTheme from "../../component/CardTheme";
@@ -33,6 +34,11 @@ export default function Book() {
 
   const [selectedType, setSelectedType] = useState("All");
   const [search, setSearch] = useState("");
+useEffect(() => {
+  if (authReady) {
+    fetchBooks();
+  }
+}, [authReady]);
    if (!authReady) {
     return (
       <ThemeView style={styles.centered}>
@@ -45,9 +51,6 @@ export default function Book() {
     );
   }
 
-  useEffect(() => {
-    fetchBooks();
-  }, []);
 
   const getMimeType = (filename) => {
     const ext = filename.split(".").pop().toLowerCase();
@@ -64,34 +67,79 @@ export default function Book() {
     }
   };
 
-  const openFile = async (book) => {
-    try {
-      if (!book.fileUrl) {
-        Alert.alert("No file", "This book has no file");
-        return;
-      }
+  // const openFile = async (book) => {
+  //   try {
+  //     if (!book.fileUrl) {
+  //       Alert.alert("No file", "This book has no file");
+  //       return;
+  //     }
 
-      console.log("Opening URL:", book.fileUrl);
+  //     console.log("Opening URL:", book.fileUrl);
+
+  //     const filename = book.fileUrl.split("/").pop();
+  //     console.log("Extracted filename:", filename);
+  //     const localUri = FileSystem.documentDirectory + filename;
+  //     console.log("Local URI for download:", localUri);
+
+  //     const downloadResult = await FileSystem.downloadAsync(
+  //       book.fileUrl,
+  //       localUri
+  //     );
+
+  //     console.log("Download result:", downloadResult);
+
+  //     const fileInfo = await FileSystem.getInfoAsync(downloadResult.uri);
+
+  //     console.log("File info:", fileInfo);
+
+  //     // 🔴 CRITICAL CHECK
+  //     if (!fileInfo.exists || fileInfo.size < 1000) {
+  //       throw new Error("Downloaded file is invalid (likely HTML error page)");
+  //     }
+
+  //     router.push({
+  //       pathname: "/pdf-viewer",
+  //       params: {
+  //         url: downloadResult.uri,
+  //         title: book.title,
+  //       },
+  //     });
+  //   } catch (error) {
+  //     console.log("OPEN FILE ERROR:", error);
+  //     Alert.alert("Error", "Failed to open file. Check backend URL.");
+  //   }
+  // };
+
+const openFile = async (book) => {
+  try {
+    // ✅ CASE 1: External link (Facebook, YouTube, etc.)
+    if (book.fileLink) {
+      const supported = await Linking.canOpenURL(book.fileLink);
+
+      if (supported) {
+        await Linking.openURL(book.fileLink);
+      } else {
+        Alert.alert("Error", "Cannot open this link");
+      }
+      return;
+    }
+
+    // ✅ CASE 2: File (PDF, DOC, etc.)
+    if (book.fileUrl) {
+      console.log("Opening file URL:", book.fileUrl);
 
       const filename = book.fileUrl.split("/").pop();
-      console.log("Extracted filename:", filename);
       const localUri = FileSystem.documentDirectory + filename;
-      console.log("Local URI for download:", localUri);
 
       const downloadResult = await FileSystem.downloadAsync(
         book.fileUrl,
         localUri
       );
 
-      console.log("Download result:", downloadResult);
-
       const fileInfo = await FileSystem.getInfoAsync(downloadResult.uri);
 
-      console.log("File info:", fileInfo);
-
-      // 🔴 CRITICAL CHECK
       if (!fileInfo.exists || fileInfo.size < 1000) {
-        throw new Error("Downloaded file is invalid (likely HTML error page)");
+        throw new Error("Invalid file");
       }
 
       router.push({
@@ -101,11 +149,18 @@ export default function Book() {
           title: book.title,
         },
       });
-    } catch (error) {
-      console.log("OPEN FILE ERROR:", error);
-      Alert.alert("Error", "Failed to open file. Check backend URL.");
+
+      return;
     }
-  };
+
+    // ❌ No file or link
+    Alert.alert("Error", "No file or link available");
+
+  } catch (error) {
+    console.log("OPEN ERROR:", error);
+    Alert.alert("Error", "Failed to open content");
+  }
+};
   const handleDelete = (bookId) => {
     Alert.alert("Delete Book", "Are you sure?", [
       { text: "Cancel", style: "cancel" },
@@ -154,6 +209,15 @@ const handleShare = async (book) => {
 
   const renderItem = ({ item }) => (
     <CardTheme style={styles.card}>
+         {/* --- ADDED SHARE BUTTON --- */}
+         <RowItemsTheme style={{ justifyContent: "flex-end", marginBottom: 8 ,marginHorizontal:12}}>
+
+        <Pressable onPress={() => handleShare(item)} style={styles.iconButton}>
+          <Ionicons name="share-social-outline" size={20} color={colors.primary} />
+          <ThemeText style={[styles.iconText, { fontSize: 10 }]}>Share</ThemeText>
+        </Pressable>
+        {/* ------------------------- */}
+         </RowItemsTheme>
       <ThemeText style={styles.title}>Title: {item.title}</ThemeText>
       <ThemeText style={styles.author}>Author: {item.author}</ThemeText>
       <ThemeText style={styles.desc}>
@@ -172,12 +236,7 @@ const handleShare = async (book) => {
           <Ionicons name="create-outline" size={24} color={colors.primary} />
           <ThemeText style={styles.iconText}>Update</ThemeText>
         </Pressable>
-        {/* --- ADDED SHARE BUTTON --- */}
-        <Pressable onPress={() => handleShare(item)} style={styles.iconButton}>
-          <Ionicons name="share-social-outline" size={24} color={colors.primary} />
-          <ThemeText style={styles.iconText}>Share</ThemeText>
-        </Pressable>
-        {/* ------------------------- */}
+     
 
         <Pressable onPress={() => handleDelete(item._id)} style={styles.iconButton}>
           <Ionicons name="trash-outline" size={24} color="#FF4B5C" />

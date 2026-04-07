@@ -51,8 +51,7 @@ export default function DashBordLayout() {
           name="pdf-viewer"
           options={{
             headerShown: false,
-            title: "PDF Viewer",
-            tabBarButton: () => null, // Hide from tab bar
+            href: null ,
           }}
         />
         <Tabs.Screen name="updateBook" options={{ href: null }} />

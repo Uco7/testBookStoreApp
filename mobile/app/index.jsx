@@ -1,4 +1,4 @@
-import { StyleSheet, View, Image,  } from 'react-native';
+import { StyleSheet, View, Image, Pressable  } from 'react-native';
 import ThemeView from '../component/ThemeView';
 import ThemeText from '../component/ThemeText';
 import Spacer from "../component/Spacer";
@@ -52,8 +52,7 @@ const handleFeedback = () => {
         </ThemeText>
         </Link>
          
-        <PressableComponent onPress={handleFeedback} style={{borderWidth: 0,
-    borderColor: "transparent",}}>
+        <Pressable onPress={handleFeedback} style={{ backgroundColor: "transparent", padding: 8, borderRadius: 8  }}>
   <ThemeText style={styles.navTitle}>
     FeedBack{" "}
     <Ionicons
@@ -62,8 +61,9 @@ const handleFeedback = () => {
       color={theme.iconColorFocused}
     />
   </ThemeText>
-</PressableComponent>
+</Pressable>
       </RowItemsTheme>
+      <Spacer height={50} />
 
       {/* Top guidance */}
       
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
    
-    padding:20
+    padding:10
   },
   topText: {
     fontSize: 12,
