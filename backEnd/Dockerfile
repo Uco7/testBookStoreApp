@@ -1,7 +1,9 @@
-# Stage 1: Build & Dependencies
+# ===============================
+# Stage 1: Build Dependencies
+# ===============================
 FROM node:22-slim AS builder
 
-# Install build essentials for native modules (like bcrypt)
+# Install build tools (for native modules like bcrypt)
 RUN apt-get update && apt-get install -y \
     python3 \
     make \
@@ -10,37 +12,41 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Copy package files first for better caching
+# Copy package files first (for caching)
 COPY package*.json ./
 
-# Install all dependencies
-RUN npm install
+# Install dependencies (production only)
+RUN npm install --omit=dev
 
-# Copy the rest of your code
+# Copy app source code
 COPY . .
 
+# ===============================
 # Stage 2: Production Runtime
+# ===============================
 FROM node:22-slim
 
-# CRITICAL: Install LibreOffice for your document conversion packages
+# Install LibreOffice + required dependencies for conversion
 RUN apt-get update && apt-get install -y \
     libreoffice \
-    # ghostscript is often needed by docx-pdf
+    libreoffice-writer \
+    libreoffice-calc \
+    libreoffice-impress \
     ghostscript \
-    # Clean up to keep the image small
+    fonts-dejavu \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy only the necessary files from builder
+# Copy built app from builder stage
 COPY --from=builder /app /app
 
-# Set environment to production
+# Set environment
 ENV NODE_ENV=production
 
-# Render uses the PORT env variable automatically
+# Render will inject PORT automatically
 EXPOSE 10000
 
-# Start the application
+# Start server
 CMD ["node", "src/server.js"]
