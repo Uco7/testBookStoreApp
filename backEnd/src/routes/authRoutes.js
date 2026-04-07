@@ -1,16 +1,29 @@
 import express from "express";
-import {register,login,getUser } from "../controller/authController.js";
+import {
+  requestRegisterOTP,
+  verifyAndRegister,
+  login,
+  getUser,
+  forgotPassword,
+  resetPassword
+} from "../controller/authController.js";
+
 import authMiddleware from "../middleWare/authMiddleWare.js";
-// import appVersion from "../config/appVersion.js";
 
 const router = express.Router();
-// router.post("/register/request", requestRegistration);
 
-router.post("/register", register);
+router.post("/register/request", requestRegisterOTP);
+router.post("/register", verifyAndRegister);
 router.post("/login", login);
 router.get("/user", authMiddleware, getUser);
-// router.post("/forgot-password",forgotPassword)
-// router.post("/reset-password",resetPassword)
+
+
+
+router.post("/forgot-password",forgotPassword)
+router.post("/reset-password",resetPassword)
+// router.post("/register", register);
+// router.post("/login", login);
+// router.get("/user", authMiddleware, getUser);
 // router.get("/app/version", appVersion);
 // App version route
 const latestAppInfo = {

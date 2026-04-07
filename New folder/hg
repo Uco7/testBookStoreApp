@@ -1,0 +1,5 @@
+# Delete the native folders
+rm -rf android ios
+
+# Clear the Expo/EAS cache
+npx expo start -c

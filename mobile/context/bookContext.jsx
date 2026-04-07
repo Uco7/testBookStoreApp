@@ -1,48 +1,11 @@
-// import { useContext } from "react";
-// import { UserContext } from "../context/UserContext";
-// import axios from "axios";
-// import AsyncStorage from "@react-native-async-storage/async-storage";
-
-// const APP_URL = "http://192.168.83.202:5000";
-
-// export function useBook() {
-//   const { user } = useContext(UserContext);
-
-//   const createBook = async ({ title, author, description, file }) => {
-//     const token = await AsyncStorage.getItem("token");
-
-//     const formData = new FormData();
-//     formData.append("title", title);
-//     formData.append("author", author);
-//     formData.append("description", description);
-//     formData.append("file", {
-//       uri: file.uri,
-//       name: file.name,
-//       type: file.mimeType
-//     });
-
-//     const res = await axios.post(`${APP_URL}/books`, formData, {
-//       headers: {
-//         Authorization: `Bearer ${token}`,
-//         "Content-Type": "multipart/form-data"
-//       }
-//     });
-
-//     return res.data;
-//   };
-
-//   return { createBook };
-// }
-
-
 
 
 import { createContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
-let APPURl="https://testbookstoreapp.onrender.com";
-// const APPURl = "http://192.168.177.202:5000";
+// Base URL
+const APPURl ="https://b318-102-90-103-207.ngrok-free.app";
 
 export const BookContext = createContext();
 
@@ -50,47 +13,13 @@ export function BookProvider({ children }) {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Create Book (supports uploaded file OR external link)
-  const createBook = async ({ title, author, description, file, fileLink }) => {
-    if (!title || (!file && !fileLink)) {
-      throw new Error("Title and either file or link required");
-    }
+  console.log("BookContext initialized with APPURl:", APPURl);
 
-    const token = await AsyncStorage.getItem("token");
-    if (!token) throw new Error("No auth token found");
+  // =========================
+  // FETCH BOOKS (centralized)
+  // =========================
+  
 
-    const formData = new FormData();
-    formData.append("title", title);
-    if (author) formData.append("author", author);
-    if (description) formData.append("description", description);
-    if (file) {
-      formData.append("file", {
-        uri: file.uri,
-        type: file.mimeType || file.type || "application/pdf",
-        name: file.name,
-      });
-    }
-    if (fileLink) formData.append("fileLink", fileLink);
-
-    try {
-      const res = await axios.post(`${APPURl}/books`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      console.log("Book created", res.data);
-
-      // Update local state
-      setBooks((prev) => [res.data, ...prev]);
-      return res.data;
-    } catch (err) {
-      console.log("Create book error:", err.response?.data || err.message);
-      throw new Error(err.response?.data?.message || err.message);
-    }
-  };
-
-  // Fetch all books
   const fetchBooks = async () => {
     try {
       const token = await AsyncStorage.getItem("token");
@@ -103,85 +32,126 @@ export function BookProvider({ children }) {
     }
   };
 
-  // Update Book (supports uploaded file OR external link)
-  const updateBook = async (bookId, { title, author, description, file, fileLink }) => {
-  try {
-    const token = await AsyncStorage.getItem("token");
-    const formData = new FormData();
 
-    if (title) formData.append("title", title);
-    if (author) formData.append("author", author);
-    if (description) formData.append("description", description);
+  // =========================
+  // CREATE BOOK
+  // =========================
+  const createBook = async ({ title, author, description, file, fileLink }) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
 
-    if (file) {
-      formData.append("file", {
-        uri: file.uri,
-        type: file.mimeType || "application/octet-stream",
-        name: file.name,
+      const formData = new FormData();
+
+      if (!title) {
+        throw new Error("Title is required");
+      }
+
+      formData.append("title", title);
+
+      if (author) formData.append("author", author);
+      if (description) formData.append("description", description);
+      if (fileLink) formData.append("fileLink", fileLink);
+
+      if (file) {
+        formData.append("file", {
+          uri: file.uri,
+          name: file.name,
+          type: file.mimeType || "application/octet-stream",
+        });
+      }
+
+      const response = await fetch(`${APPURl}/books`, {
+        method: "POST",
+        body: formData,
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       });
+
+      const text = await response.text();
+      console.log("Backend response:", text);
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        throw new Error("Server did not return valid JSON");
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || "Upload failed");
+      }
+
+      // ✅ IMPORTANT: refresh list after upload
+      await fetchBooks();
+
+      return data;
+    } catch (error) {
+      console.log("Create book error:", error.message);
+      throw error;
     }
+  };
 
-    if (fileLink) formData.append("fileLink", fileLink);
+  // =========================
+  // UPDATE BOOK
+  // =========================
+  const updateBook = async (bookId, { title, author, description, file, fileLink }) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
 
-    await axios.put(`${APPURl}/books/${bookId}`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${token}`,
-      },
-    });
+      const formData = new FormData();
 
-    fetchBooks();
-  } catch (err) {
-    console.error("Update book error:", err.response?.data || err.message);
-    throw err;
-  }
-};
+      if (title) formData.append("title", title);
+      if (author) formData.append("author", author);
+      if (description) formData.append("description", description);
+      if (fileLink) formData.append("fileLink", fileLink);
 
-  // const updateBook = async (bookId, { title, author, description, file, fileLink }) => {
-  //   try {
-  //     const token = await AsyncStorage.getItem("token");
-  //     const formData = new FormData();
+      if (file) {
+        formData.append("file", {
+          uri: file.uri,
+          type: file.mimeType || "application/octet-stream",
+          name: file.name,
+        });
+      }
 
-  //     if (title) formData.append("title", title);
-  //     if (author) formData.append("author", author);
-  //     if (description) formData.append("description", description);
-  //     if (file) {
-  //       formData.append("file", {
-  //         uri: file.uri,
-  //         type: file.type || "application/pdf",
-  //         name: file.name,
-  //       });
-  //     }
-  //     if (fileLink) formData.append("fileLink", fileLink);
+      await axios.put(`${APPURl}/books/${bookId}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-  //     await axios.put(`${APPURl}/books/${bookId}`, formData, {
-  //       headers: {
-  //         "Content-Type": "multipart/form-data",
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //     });
+      await fetchBooks();
+    } catch (err) {
+      console.error("Update book error:", err.response?.data || err.message);
+      throw err;
+    }
+  };
 
-  //     fetchBooks(); // refresh list
-  //   } catch (err) {
-  //     console.log("Update book error:", err.response?.data || err.message);
-  //     throw err;
-  //   }
-  // };
-
-  // Delete Book
+  // =========================
+  // DELETE BOOK
+  // =========================
   const deleteBook = async (bookId) => {
     try {
       const token = await AsyncStorage.getItem("token");
+
       await axios.delete(`${APPURl}/books/${bookId}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
-      fetchBooks();
+
+      await fetchBooks();
     } catch (err) {
       console.log("Delete book error:", err.response?.data || err.message);
       throw err;
     }
   };
 
+  // =========================
+  // INIT LOAD
+  // =========================
   useEffect(() => {
     fetchBooks();
   }, []);

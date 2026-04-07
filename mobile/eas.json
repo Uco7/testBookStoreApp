@@ -1,8 +1,26 @@
+// {
+//   "cli": {
+//     "version": ">= 5.0.0"
+//   },
+//   "build": {
+//     "production": {
+//       "android": {
+//         "buildType": "apk"
+//       }
+//     }
+//   }
+// }
+
+
 {
   "cli": {
     "version": ">= 5.0.0"
   },
   "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
     "production": {
       "android": {
         "buildType": "apk"

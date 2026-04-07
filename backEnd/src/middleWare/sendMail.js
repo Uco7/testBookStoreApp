@@ -1,32 +1,51 @@
-import nodemailer from "nodemailer";
-import dotenv from "dotenv";
-dotenv.config();
+// import dotenv from "dotenv";
+// dotenv.config();
 
-const transporter = nodemailer.createTransport({
-  service: "Gmail", // Or "SMTP" if using another provider
-  auth: {
-    user: process.env.EMAIL,
-    pass: process.env.EMAIL_PASSWORD, // App password for Gmail or SMTP password
-  },
-});
+// import { Resend } from "resend";
 
-const sendEmail = async ({ email, subject, message }) => {
+// const resend = new Resend(process.env.RESEND_API_KEY);
+// console.log("Resend API Key:", process.env.RESEND_API_KEY ? "Loaded" : "Not Loaded");
+
+// const sendEmail = async ({ to, subject, html }) => {
+//   try {
+//     const data = await resend.emails.send({
+//       from: "BookStore <noreply@uchetechub.store>", // ✅ FIXED
+//       to,
+//       subject,
+//       html,
+//     });
+
+//     return data;
+//   } catch (error) {
+//     console.error("Email error:", error);
+//     throw error;
+//   }
+// };
+
+// export default sendEmail;
+
+import dotenv from "dotenv"
+
+dotenv.config()
+import {Resend} from "resend"
+const resend=new Resend(process.env.RESEND_API_KEY)
+console.log("resesnd api",process.env.RESEND_API_KEY)
+
+const sendMail=async({to,subject,html})=>{
   try {
-    const mailOptions = {
-      from: `"Bookstore App" <${process.env.EMAIL}>`,
-      to: email,
+    const data=await resend.emails.send({
+      from:"bookStore app <noreply@uchetechub.store>",
+      to, 
       subject,
-      text: message,
-      // optional: html: "<p>HTML version of your message</p>"
-    };
-
-    const info = await transporter.sendMail(mailOptions);
-    console.log("✅ Email sent:", info.messageId);
-    return info;
-  } catch (err) {
-    console.error("❌ Email send failed:", err);
-    throw err;
+      html
+    });
+    console.log("data of send mail",data)
+    return data
+    
+  } catch (error) {
+    console.log("error in sending mail",error)
+    throw error
+    
   }
-};
-
-export default sendEmail;
+}
+export default sendMail

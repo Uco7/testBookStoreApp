@@ -127,7 +127,7 @@ if (status !== "idle") return; // Prevent double submission
           >
             <View style={styles.btnContent}>
               <Ionicons name="document-text-outline" size={16} color="#fff" />
-              <ThemeText style={styles.btnText}>Doc</ThemeText>
+              <ThemeText style={styles.btnText}>File/Doc</ThemeText>
             </View>
           </ThemeButton>
         </View>
@@ -146,7 +146,7 @@ if (status !== "idle") return; // Prevent double submission
 
           {/* Common Inputs */}
           <InputTheme
-            placeholder="Title"
+            placeholder="File Name/Title"
             value={title}
             onChangeText={setTitle}
           />
@@ -155,7 +155,7 @@ if (status !== "idle") return; // Prevent double submission
           {(selectedType === "doc" || selectedType === "reading") && (
             <>
               <InputTheme
-                placeholder="Author Name"
+                placeholder="Author Name(owner name)"
                 value={author}
                 onChangeText={setAuthor}
               />
