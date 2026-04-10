@@ -357,18 +357,204 @@
 
 
 
+// import path from "path";
+// import fs from "fs";
+// import multer from "multer";
+// import libre from "libreoffice-convert";
+// import util from "util";
+// import Book from "../models/book.js";
+// import { uploadsDir } from "../config/path.js";
+
+// const lib_convert = util.promisify(libre.convert);
+
+// // ================= MULTER =================
+// const uploadsDir = path.join(process.cwd(), "uploads");
+
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     if (!fs.existsSync(uploadsDir)) {
+//       fs.mkdirSync(uploadsDir, { recursive: true });
+//     }
+//     cb(null, uploadsDir);
+//   },
+//   filename: (req, file, cb) => {
+//     const cleanName = file.originalname
+//       .replace(/\s+/g, "_")
+//       .replace(/[^\w.-]/g, "");
+
+//     cb(null, `${Date.now()}-${cleanName}`);
+//   },
+// });
+
+// export const upload = multer({ storage });
+
+// // ================= CONVERT =================
+// const convertToPDF = async (inputPath) => {
+//   const ext = path.extname(inputPath).toLowerCase();
+
+//   const supported = [".docx", ".doc", ".pptx", ".ppt", ".xls", ".xlsx"];
+
+//   if (!supported.includes(ext)) {
+//     return inputPath;
+//   }
+
+//   try {
+//     const fileBuffer = fs.readFileSync(inputPath);
+
+//     const pdfBuffer = await lib_convert(fileBuffer, ".pdf", undefined);
+
+//     const pdfPath = inputPath.replace(ext, ".pdf");
+
+//     fs.writeFileSync(pdfPath, pdfBuffer);
+
+//     // optional: delete original file after conversion
+//     // fs.unlinkSync(inputPath);
+
+//     return pdfPath;
+//   } catch (err) {
+//     console.error("❌ Conversion failed:", err.message);
+//     return inputPath;
+//   }
+// };
+
+// // ================= CREATE BOOK =================
+// export const createBook = async (req, res) => {
+//   try {
+//     const { title, author, description, fileLink } = req.body;
+
+//     if (!title) {
+//       return res.status(400).json({ message: "Title is required" });
+//     }
+
+//     let fileUrl = null;
+//     let fileType = null;
+//     let originalFormat = null;
+
+//     // ---------- FILE UPLOAD ----------
+//     if (req.file) {
+//       const finalPath = await convertToPDF(req.file.path);
+//       console.log("Final file path after conversion:", finalPath);
+
+//       const fileName = path.basename(finalPath);
+
+//       // ✅ IMPORTANT: use /uploads not /files
+//       fileUrl = `${req.protocol}://${req.get("host")}/uploads/${fileName}`;
+//       console.log("Generated file URL:", fileUrl);
+
+//       fileType = "file";
+//       originalFormat = path.extname(req.file.originalname).replace(".", "");
+//     }
+
+//     // ---------- EXTERNAL LINK ----------
+//     if (fileLink) {
+//       fileUrl = null;
+//       fileType = "link";
+//     }
+
+//     if (!req.file && !fileLink) {
+//       return res.status(400).json({ message: "Provide file or link" });
+//     }
+//     if(!req.user.id){
+//       return res.status(400).json({ message: "User not authenticated" });
+//     }
+
+//     const book = new Book({
+//       title,
+//       author,
+//       description,
+//       fileUrl,
+//       fileLink,
+//       fileType,
+//       originalFormat,
+//       user: req.user?.id || null,
+//     });
+
+//     await book.save();
+// console.log("Book created:", book);
+//     res.status(201).json(book);
+//   } catch (err) {
+//     console.error("❌ Create book error:", err);
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+
+// // ================= GET BOOKS =================
+// export const getBooks = async (req, res) => {
+//   try {
+//     const books = await Book.find({ user: req.user.id }).sort({ createdAt: -1 });
+//     console.log("Books retrieved:", books);
+//     res.json(books);
+//   } catch (err) {
+//     console.error("❌ Get books error:", err);
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+
+// // ================= UPDATE BOOK =================
+// export const updateBook = async (req, res) => {
+//   try {
+//     const { title, author, description, fileLink } = req.body;
+
+//     const book = await Book.findById(req.params.id);
+//     if (!book) return res.status(404).json({ message: "Book not found" });
+
+//     if (req.file) {
+//       const finalPath = await convertToPDF(req.file.path);
+//       const fileName = path.basename(finalPath);
+
+//       book.fileUrl = `${req.protocol}://${req.get("host")}/uploads/${fileName}`;
+//       console.log("Updated file URL:", book.fileUrl);
+//       book.fileLink = null;
+//       book.fileType = "file";
+//       book.originalFormat = path.extname(req.file.originalname).replace(".", "");
+//     }
+
+//     if (fileLink) {
+//       book.fileLink = fileLink;
+//       book.fileUrl = null;
+//       book.fileType = "link";
+//     }
+
+//     book.title = title || book.title;
+//     book.author = author || book.author;
+//     book.description = description || book.description;
+
+//     await book.save();
+
+//     res.json(book);
+//   } catch (err) {
+//     console.error("❌ Update error:", err);
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+
+// // ================= DELETE BOOK =================
+// export const deleteBook = async (req, res) => {
+//   try {
+//     const book = await Book.findByIdAndDelete(req.params.id);
+//     if (!book) return res.status(404).json({ message: "Book not found" });
+
+//     console.log("Book deleted:", book);
+//     res.json({ message: "Deleted successfully" });
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+
+
+
+
 import path from "path";
 import fs from "fs";
 import multer from "multer";
 import libre from "libreoffice-convert";
 import util from "util";
 import Book from "../models/book.js";
+import { uploadsDir } from "../config/path.js";
 
 const lib_convert = util.promisify(libre.convert);
 
 // ================= MULTER =================
-const uploadsDir = path.join(process.cwd(), "uploads");
-
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     if (!fs.existsSync(uploadsDir)) {
@@ -376,6 +562,7 @@ const storage = multer.diskStorage({
     }
     cb(null, uploadsDir);
   },
+
   filename: (req, file, cb) => {
     const cleanName = file.originalname
       .replace(/\s+/g, "_")
@@ -390,7 +577,6 @@ export const upload = multer({ storage });
 // ================= CONVERT =================
 const convertToPDF = async (inputPath) => {
   const ext = path.extname(inputPath).toLowerCase();
-
   const supported = [".docx", ".doc", ".pptx", ".ppt", ".xls", ".xlsx"];
 
   if (!supported.includes(ext)) {
@@ -399,15 +585,11 @@ const convertToPDF = async (inputPath) => {
 
   try {
     const fileBuffer = fs.readFileSync(inputPath);
-
     const pdfBuffer = await lib_convert(fileBuffer, ".pdf", undefined);
 
     const pdfPath = inputPath.replace(ext, ".pdf");
 
     fs.writeFileSync(pdfPath, pdfBuffer);
-
-    // optional: delete original file after conversion
-    // fs.unlinkSync(inputPath);
 
     return pdfPath;
   } catch (err) {
@@ -432,28 +614,25 @@ export const createBook = async (req, res) => {
     // ---------- FILE UPLOAD ----------
     if (req.file) {
       const finalPath = await convertToPDF(req.file.path);
-      console.log("Final file path after conversion:", finalPath);
-
       const fileName = path.basename(finalPath);
 
-      // ✅ IMPORTANT: use /uploads not /files
       fileUrl = `${req.protocol}://${req.get("host")}/uploads/${fileName}`;
-      console.log("Generated file URL:", fileUrl);
 
       fileType = "file";
       originalFormat = path.extname(req.file.originalname).replace(".", "");
     }
 
-    // ---------- EXTERNAL LINK ----------
+    // ---------- LINK ----------
     if (fileLink) {
-      fileUrl = null;
+      fileUrl = fileLink;
       fileType = "link";
     }
 
     if (!req.file && !fileLink) {
       return res.status(400).json({ message: "Provide file or link" });
     }
-    if(!req.user.id){
+
+    if (!req.user?.id) {
       return res.status(400).json({ message: "User not authenticated" });
     }
 
@@ -465,11 +644,11 @@ export const createBook = async (req, res) => {
       fileLink,
       fileType,
       originalFormat,
-      user: req.user?.id || null,
+      user: req.user.id,
     });
 
     await book.save();
-console.log("Book created:", book);
+
     res.status(201).json(book);
   } catch (err) {
     console.error("❌ Create book error:", err);
@@ -480,8 +659,10 @@ console.log("Book created:", book);
 // ================= GET BOOKS =================
 export const getBooks = async (req, res) => {
   try {
-    const books = await Book.find({ user: req.user.id }).sort({ createdAt: -1 });
-    console.log("Books retrieved:", books);
+    const books = await Book.find({ user: req.user.id }).sort({
+      createdAt: -1,
+    });
+
     res.json(books);
   } catch (err) {
     console.error("❌ Get books error:", err);
@@ -502,7 +683,6 @@ export const updateBook = async (req, res) => {
       const fileName = path.basename(finalPath);
 
       book.fileUrl = `${req.protocol}://${req.get("host")}/uploads/${fileName}`;
-      console.log("Updated file URL:", book.fileUrl);
       book.fileLink = null;
       book.fileType = "file";
       book.originalFormat = path.extname(req.file.originalname).replace(".", "");
@@ -531,9 +711,11 @@ export const updateBook = async (req, res) => {
 export const deleteBook = async (req, res) => {
   try {
     const book = await Book.findByIdAndDelete(req.params.id);
-    if (!book) return res.status(404).json({ message: "Book not found" });
 
-    console.log("Book deleted:", book);
+    if (!book) {
+      return res.status(404).json({ message: "Book not found" });
+    }
+
     res.json({ message: "Deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
