@@ -4,216 +4,193 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import user from "../models/user.js";
-const normalizeEmail=(email)=>email?.toLowerCase().trim()
-const sanitizer=(inputData)=>inputData?.replace(/[<>\/\\$;]/g,"").trim()
+import { login } from "./authController.js";
 
+const normalizeEmail=(email)=>email?toLowerCase().trim();
+const normalizeUserName=(inputData)=>inputData?.replace(/[^a-zA-Z\s]/g, "").trim()
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)[^\s]{8,128}$/;
 const globalNameRegex = /^[\p{L}\s'-]{2,50}$/u;
 // This removes EVERYTHING except letters and spaces
 const sanitizedName = (str) => str?.replace(/[^a-zA-Z\s]/g, "").trim();
-
-export const requestUserOtp= async(req,res)=>{
-    try {
-        const {userName,fullName,email,password}=req.body
-        console.log("req body",req.body)
-        if(!userName||!fullName||!email||!password){
-            return res.status(400).json({
-                message:"all field are requiured"
-            })
-        }
-        const cleanEmail=normalizeEmail(email);
-        const  cleanInput=sanitizer(userName)
-        const cleanFullName=sanitizedName(fullName)
-        if(!EMAIL_REGEX.test(cleanEmail)){
-            return res.status(400).json({
-                message:"invalid email format"
-            })
-        }
-        if(!USERNAME_REGEX.test(cleanInput)){
-            return res.status(400).json({
-                message:"invalid userName format"
-            })
-        }
-        if(!PASSWORD_REGEX.test(password)){
-            return res.status(400).json({
-                message:"password too weak"
-            })
-        }
-        if(!globalNameRegex.test(cleanFullName)){
-            return res.status(400).json({
-                message:"invalid fullName format"
-            })
-        }
-        const isuserExist=await User.findOne({
-            $or:[{email:cleanEmail},{userName:cleanInput}]
+export const requestOtp=async(req,res)=>{
+    const {userName,fullName,email,password}=req.body;
+    if(!userName||!fullName||!email||!password){
+        return res.status(400).json({
+            message:"all field are required"
         })
-        console.log("is user exist",isuserExist)
-        if(isuserExist){
-            return res.status(400).json({
-                message:"user with this email or userName already exist"
-            })
-        }
-        const otp=math.floor(100000 + math.random()*900000).toString();
-        console.log("generated otp",otp)
-        const hashedPassword=await bcrypt.hash(password,12)
-        console.log("hashed password",hashedPassword)
-        const newUser=await User.findOneAndUpdate(
-            {email:cleanEmail},
-            {
-                userName:cleanInput,
-                fullName:cleanFullName,
-                email:cleanEmail,
-                password:hashedPassword,
-                otp,
-                otpExpires:Date.now() + 15*60*1000,
-                isVerified:false,
-                
-            },
-            {upsert:true,now:true}
-
-
-        )
-        console.log("new user after update",newUser)
-        if(!newUser) return res.status(400).json({
-            message:"failed to create user"
-        })
-        const response=await sendMail({
-            from:"bookStore app<app@bookstore.com>",
-            to:cleanEmail,
-            subject:"Your OTP for BookStore Registration",
-            html:`<h1>userName:${cleanInput}</h1><h4>
-             Hi ${cleanInput}, did you request an OTP for registration?</h4><p>Your OTP is <strong>${otp}</strong>.
-             It expires in 15 minutes.</p><p style="color: #666;">If you did not request this, please ignore this email.</p>`
-
-        })
-        cosole.log("send mail response",response)
-        if(!response.ok){
-            return res.status(500).json({
-                message:"failed to send otp email"
-            })
-        }else{
-            return res.status(200).json({
-                message:"verification code sent to email"
-            })
-        }
-
-    } catch (error) {
-        console.log("otp request faild",error)
-        res.status(500).json({
-            message:"Internal server error",error
-        })
-        
     }
-}
-export const verifyAnRegUser=async(req,res)=>{
-    try {
-        const {email,otp}=req.body
-        console.log("verification request",req.body)
-        if(!email||!otp){
-            return res.status(400).json({
-                message:"email and otp are required"
-            })
+    const cleanEmail=normalizeEmail(email)
+    const cleanUserName=normalizeUserName(userName)
+    if(EMAIL_REGEX.test(cleanEmail)){
+        return res.status(400).json({
+            message:"invalid email format"
+        })
+    }
+    if(USERNAME_REGEX.test(cleanUserName)){
+        return res.status(400).json({
+            message:"invalid  username format"
+        })
+    }
+    if(globalNameRegex.test(fullName)){
+        return res.status(400).json({
+            message:"invalid name format"
+        })
+    }
+    if(PASSWORD_REGEX.test(password)){
+        return res.status(400).json({
+            message:"invalid password format"
+        })
+    }
+    const  isexist=await User.findOne(
+        {
+            $or:[{email:cleanEmail},{userName:cleanUserName}]
         }
+    )
+    if(isexist){
+        return res.status(400).json({
+            message:"user already exist"
+        })
+    }
+    const otp=Math.floor(100000 + Math.random() *900000).toString;
+    const hashPassword=await bycrpt.hash
+    await User.findOneAndUpdate({
+        $or:{email:cleanEmail},
+        userName:cleanUserName,
+        fullName:normalizeUserName(fullName),
+        password:hashPassword,
+        otp,
+        otpExpires:Date.now()+15*60*1000,
+        isVerified:fales,
+
+
+    },{upser:true,now: true})
+
+};
+sendMail({
+    from:"bookStore App<noreply@ucheTecHub.store>",
+    to:cleanEmail,
+    subject:"your registeration verification email at bookSore.store",
+    html:`<h1>hi ${cleanUserName}
+    <p>your verification otp ${otp}</p>`
+})
+.catch((error)=>{
+    console.log("error sending mail",error)
+    res.status(400).json({
+        message:"emai sending failed"
+    })
+    console.log("email sent")
+    res.status(200).json({
+        message:"verification code have been sent to your email"
+    })
+})
+export const verifyandregUser=async(req,res)=>{
+    try {
+        const {otp,email}=req.body;
         const cleanEmail=normalizeEmail(email)
-        if(!EMAIL_REGEX.test(cleanEmail)){
-            return res.status(400).json({
+        if(EMAIL_REGEX.test(cleanEmail)){
+            res.status(400).json({
                 message:"invalid email format"
             })
         }
-        const user= await User.findOne({email:cleanEmail})
-        console.log("user found for verification",user)
-        if(!user){
-            return res.status(400).json({
-                message:"user session not found, please register again"
+        const existUser=await User.findOne({email:cleanEmail})
+        if(Date.now()>existUser.otpExpires){
+            res.status(400).json({
+                message:"otp has already expire"
             })
         }
-        if(user.isVerified){
-            return res.status(400).json({
-                message:"user already verified"
+        if(existUser&&existUser.isVerified===true){
+            res.status(400).json({
+                message:"user has already been verified"
             })
         }
-        if(user.otp!==otp){
-            return res.status(400).json({
-                message:"invalid otp"
-            })
-        }
-        if(Date.now()>user.otpExpires){
-            return res.status(400).json({
-                message:"otp expired"
-            })
-        }
-        user.isVerified=true
-        user.otp=null
-        user.otpExpires=null
-        await user.save()
-
+        existUser.otp=null;
+        existUser.isVerified=true;
+        existUser.otpExpires=null
+        await User.save();
+        res.status(200).json({
+            user:{
+                id:existUser._id,
+                email:existUser.email,
+                userName:existUser.userName
+            },
+            message:"user registration success"
+        })
         
     } catch (error) {
-        console.log("verification and registration failed",error)
+        console.log("error",error)
         res.status(500).json({
-            message:"Internal server error, failed to verify and register user",error
+            message:"internal server error, faield to complete processs"
         })
         
     }
 }
+
 export const login=async(req,res)=>{
     try {
-        const {identifier,password}=req.body
-        console.log("login request",req.body)   
-        if(!identifier||!password){
-            return res.status(400).json({
-                message:"identifier and password are required"
+        const {identifyer,password}=req.body;
+        if(!identifyer||!password){
+            res.status(400).json({
+                message:"input field must not be empty"
             })
         }
-        const cleanIdentifier=identifier?.trim()
-        const query=EMAIL_REGEX.test(cleanIdentifier)?{email:normalizeEmail(cleanIdentifier)}:{username:cleanIdentifier}
-        const oser=await User.findOne(query).select("+password")
+        const cleanIdentifyer=sanitizedName(identifyer);
+        const query=EMAIL_REGEX.test(identifyer)?{email:normalizeEmail(identifyer)}:{userName:cleanIdentifyer}
+        if(!query){
+            res.status(400).json({
+                message:"no usabe data parameter"
+            })
+
+        }
+        const user=await User.findOne(query).select("+password")
         if(!user){
-            return res.status(400).json({
+            res.status(400).json({
+                message:"user does not exist"
+            })
+        }
+        if(user&&user.isVerified===false){
+            res.status(400).json({
+                message:"user is not verifyied"
+            })
+        }
+        const match= await bycrpt.compare(password,user.password)
+        if(!match){
+            res.status(400).json({
                 message:"invalid credentials"
             })
         }
-        if(user.isVerified===false){
-            return res.status(400).json({
-                message:"user not verified, please verify your email"
+        const token=await jwt.sign({id:user._id},process.envJWT_SCREAT,{
+            expiresIn:"7d"
+        })
+        If(!token){
+            res.status(400).json({
+                message:"faied to sign user in"
             })
         }
-        const ismatch= await bycrpt.compare(password,user.password)
-        if(!ismatch){
-            return res.status(400).json({
-                message:"invalid credentials"
-            })
-        }
-        const token=jwt.sign({id:user._id},process.env.JWT_SECRET,{expiresIn:"7d"}
-        )
         res.json({token})
+        
     } catch (error) {
-        console.log("login failed",error)
+        console.log("error in login user",error)
         res.status(500).json({
-            message:"Internal server error, failed to login",error
+            message:"login failed",error
         })
         
     }
-
 }
 export const getUser=async(req,res)=>{
     try {
-        const user= await User.findById(req.user.id).select("-password")
-        if(!user){
-            return res.status(404).json({
-                message:"user not found"
-            })
-        }
-        res.json(user)
+        const user=await User.findById({_id:req.user.id});
+        if(!user)return res.status(400).json({
+            message:"user does not exist"
+        })
+        req.json(user)
         
     } catch (error) {
-        console.log("get user failed",error)
+        console.log("error")
         res.status(500).json({
-            message:"Internal server error, failed to get user",error
+            message:"error fetching user"
         })
         
     }
 }
-

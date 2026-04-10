@@ -186,6 +186,7 @@ export const getUser = async (req, res) => {
   }
 };
 
+
 /* ---------- Forgot Password ---------- */
 export const forgotPassword = async (req, res) => {
   try {
@@ -230,6 +231,7 @@ export const forgotPassword = async (req, res) => {
     res.status(500).json({ message: "Error sending email" });
   }
 };
+
 
 /* ---------- Reset Password ---------- */
 export const resetPassword = async (req, res) => {

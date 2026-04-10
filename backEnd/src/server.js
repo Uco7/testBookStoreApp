@@ -7,6 +7,7 @@
 // // Load environment variables early
 // dotenv.config();
 
+
 // import express from "express";
 // import cors from "cors";
 // import helmet from "helmet"; // Security headers
@@ -102,6 +103,7 @@ import cors from "cors";
 import fs from "fs";
 import authRoutes from "./routes/authRoutes.js";
 import bookRoutes from "./routes/bookRoute.js";
+import { uploadsDir } from "./config/path.js";
 
 const app = express();
 
@@ -120,23 +122,8 @@ app.set("trust proxy", true);
 // =========================
 // PATH SETUP
 // =========================
-const __dirname = path.resolve();
-const uploadsDir = path.join(__dirname, "uploads");
-
-// Create uploads folder if it doesn't exist
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-  console.log("📁 Created 'uploads' directory");
-}
-
-// =========================
-// STATIC FILE SERVING
-// =========================
-// ✅ Correctly serve uploaded files
 app.use("/files", express.static(uploadsDir));
 
-// Optional alias (same folder)
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 // =========================
 // LOGGING
 // =========================
@@ -151,6 +138,13 @@ app.use((req, res, next) => {
 app.get("/test", (req, res) => {
   res.send("OK - Server is Live");
 });
+// testing front end
+// app.use(express.static(path.join(__dirname, "frontEnd")))
+// app.use(express.urlencoded({extended:true}))
+// app.get("/register",(req,res)=>{
+//   res.sendFile(path.join(__dirname,"frontEnd","register.html"))
+// })
+// testing front end
 
 app.use(authRoutes);
 app.use(bookRoutes);
