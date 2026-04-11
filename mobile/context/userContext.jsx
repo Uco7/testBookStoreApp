@@ -2,7 +2,7 @@ import { createContext, useEffect, useRef, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
-const APP_URL ="https://testbookstoreapp.onrender.com";
+const APP_URL ="https://testbookstoreapp-backend-my8t.onrender.com";
 // const APP_URL ="https://b318-102-90-103-207.ngrok-free.app";
 const API_TIMEOUT = 10000;
 
