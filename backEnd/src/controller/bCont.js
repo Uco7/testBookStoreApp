@@ -727,6 +727,104 @@ const convertWithTimeout = async (buffer, timeoutMs = 10000) => {
    CREATE BOOK
 ========================= */
 
+// export const createBook = async (req, res) => {
+//   try {
+//     if (!req.user?.id) {
+//       return res.status(401).json({ message: "Unauthorized" });
+//     }
+
+//     const { title, author, description, fileLink } = req.body;
+
+//     if (!title || typeof title !== "string" || !textRegex.test(title.trim())) {
+//       return res.status(400).json({ message: "Invalid title" });
+//     }
+
+//     let fileUrl = null;
+//     let fileType = null;
+
+//     /* ========= FILE ========= */
+//     if (req.file) {
+//       const buffer = req.file.buffer;
+//       const detected = await fileTypeFromBuffer(buffer);
+
+//       if (!detected || !allowedRealMimeTypes.includes(detected.mime)) {
+//         return res.status(400).json({ message: "Invalid file type" });
+//       }
+
+//       const tempPath = path.join(
+//         os.tmpdir(),
+//         `${Date.now()}-${req.file.originalname}`
+//       );
+
+//       let clam;
+//       try {
+//         await fs.writeFile(tempPath, buffer);
+
+//         clam = await initClamAV();
+
+//         if (process.env.ENABLE_VIRUS_SCAN === "true"&& clam) {
+//           console.log("ClamAV initialized for create:", !!clam);
+//           const infected = await clam.isInfected(tempPath);
+//           if (infected) {
+//             console.log("Malware detected in uploaded file");
+//             return res.status(400).json({ message: "Malware detected" });
+//           }
+//         }
+
+//         let finalBuffer = buffer;
+
+//         if (detected.mime !== "application/pdf") {
+//           finalBuffer = await convertWithTimeout(buffer);
+//         }
+
+//         const upload = await uploadToCloudinary(
+//           finalBuffer,
+//           `${Date.now()}-book`
+//         );
+
+//         fileUrl = upload.secure_url + "?fl_attachment";
+//         fileType = "file";
+//       } finally {
+//         await fs.unlink(tempPath).catch(() => {});
+//       }
+//     }
+
+//     /* ========= LINK ========= */
+//     if (fileLink) {
+//       let url;
+//       try {
+//         url = new URL(fileLink.trim());
+//       } catch {
+//         return res.status(400).json({ message: "Invalid URL" });
+//       }
+
+//       if (url.protocol !== "https:") {
+//         return res.status(400).json({ message: "HTTPS only" });
+//       }
+
+//       fileUrl = url.href;
+//       fileType = "link";
+//     }
+
+//     const book = await Book.create({
+//       title: title.trim(),
+//       author: author?.trim() || "",
+//       description: description
+//         ? sanitizeHtml(description, { allowedTags: [], allowedAttributes: {} })
+//         : "",
+//       fileUrl,
+//       fileType,
+//       user: req.user.id
+//     });
+
+//     res.status(201).json(book);
+//   } catch (err) {
+//     console.error("CREATE ERROR:", err);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
+
+
 export const createBook = async (req, res) => {
   try {
     if (!req.user?.id) {
@@ -742,54 +840,53 @@ export const createBook = async (req, res) => {
     let fileUrl = null;
     let fileType = null;
 
-    /* ========= FILE ========= */
+    /* ================= FILE ================= */
+
     if (req.file) {
-      const buffer = req.file.buffer;
+      // 🔥 FIX: support diskStorage ONLY
+      const filePath = req.file.path;
+
+      const buffer = await fs.readFile(filePath);
+
       const detected = await fileTypeFromBuffer(buffer);
 
       if (!detected || !allowedRealMimeTypes.includes(detected.mime)) {
+        await fs.unlink(filePath).catch(() => {});
         return res.status(400).json({ message: "Invalid file type" });
       }
 
-      const tempPath = path.join(
-        os.tmpdir(),
-        `${Date.now()}-${req.file.originalname}`
+      await fs.writeFile(filePath, buffer);
+
+      const clam = await initClamAV();
+
+      if (process.env.ENABLE_VIRUS_SCAN === "true" && clam) {
+        const infected = await clam.isInfected(filePath);
+
+        if (infected) {
+          await fs.unlink(filePath).catch(() => {});
+          return res.status(400).json({ message: "Malware detected" });
+        }
+      }
+
+      let finalBuffer = buffer;
+
+      if (detected.mime !== "application/pdf") {
+        finalBuffer = await convertWithTimeout(buffer);
+      }
+
+      const upload = await uploadToCloudinary(
+        finalBuffer,
+        `${Date.now()}-book`
       );
 
-      let clam;
-      try {
-        await fs.writeFile(tempPath, buffer);
+      fileUrl = upload.secure_url + "?fl_attachment";
+      fileType = "file";
 
-        clam = await initClamAV();
-
-        if (process.env.ENABLE_VIRUS_SCAN === "true"&& clam) {
-          console.log("ClamAV initialized for create:", !!clam);
-          const infected = await clam.isInfected(tempPath);
-          if (infected) {
-            console.log("Malware detected in uploaded file");
-            return res.status(400).json({ message: "Malware detected" });
-          }
-        }
-
-        let finalBuffer = buffer;
-
-        if (detected.mime !== "application/pdf") {
-          finalBuffer = await convertWithTimeout(buffer);
-        }
-
-        const upload = await uploadToCloudinary(
-          finalBuffer,
-          `${Date.now()}-book`
-        );
-
-        fileUrl = upload.secure_url + "?fl_attachment";
-        fileType = "file";
-      } finally {
-        await fs.unlink(tempPath).catch(() => {});
-      }
+      await fs.unlink(filePath).catch(() => {});
     }
 
-    /* ========= LINK ========= */
+    /* ================= LINK ================= */
+
     if (fileLink) {
       let url;
       try {
@@ -817,13 +914,12 @@ export const createBook = async (req, res) => {
       user: req.user.id
     });
 
-    res.status(201).json(book);
+    return res.status(201).json(book);
   } catch (err) {
     console.error("CREATE ERROR:", err);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
-
 /* =========================
    GET BOOKS
 ========================= */
@@ -846,15 +942,117 @@ export const getBooks = async (req, res) => {
    UPDATE BOOK (SECURE)
 ========================= */
 
+// export const updateBook = async (req, res) => {
+//   try {
+//     if (!req.user?.id) {
+//       return res.status(401).json({ message: "Unauthorized" });
+//     }
+
+//     const { title, author, description, fileLink } = req.body;
+
+//     // ✅ FIXED: ownership check
+//     const book = await Book.findOne({
+//       _id: req.params.id,
+//       user: req.user.id
+//     });
+
+//     if (!book) {
+//       return res.status(404).json({ message: "Not found" });
+//     }
+
+//     if (title && textRegex.test(title.trim())) {
+//       book.title = title.trim();
+//     }
+
+//     if (author && textRegex.test(author.trim())) {
+//       book.author = author.trim();
+//     }
+
+//     if (description && descriptionRegex.test(description.trim())) {
+//       book.description = sanitizeHtml(description, {
+//         allowedTags: [],
+//         allowedAttributes: {}
+//       });
+//     }
+
+//     /* ========= FILE ========= */
+//     if (req.file) {
+//       const buffer = req.file.buffer;
+//       const detected = await fileTypeFromBuffer(buffer);
+
+//       if (!detected || !allowedRealMimeTypes.includes(detected.mime)) {
+//         return res.status(400).json({ message: "Invalid file type" });
+//       }
+
+//       const tempPath = path.join(
+//         os.tmpdir(),
+//         `${Date.now()}-${req.file.originalname}`
+//       );
+
+//       try {
+//         await fs.writeFile(tempPath, buffer);
+
+//         const clam = await initClamAV();
+
+//         if (process.env.ENABLE_VIRUS_SCAN === "true"&&clam) {
+//           console.log("ClamAV initialized for update:", !!clam);
+//           const infected = await clam.isInfected(tempPath);
+//           if (infected) {
+//             console.warn("Malware detected in uploaded file");
+//             return res.status(400).json({ message: "Malware detected" });
+//           }
+//         }
+
+//         let finalBuffer = buffer;
+
+//         if (detected.mime !== "application/pdf") {
+//           finalBuffer = await convertWithTimeout(buffer);
+//         }
+
+//         const upload = await uploadToCloudinary(
+//           finalBuffer,
+//           `${Date.now()}-book`
+//         );
+
+//         book.fileUrl = upload.secure_url + "?fl_attachment";
+//         book.fileType = "file";
+//         book.fileLink = null;
+//       } finally {
+//         await fs.unlink(tempPath).catch(() => {});
+//       }
+//     }
+
+//     /* ========= LINK ========= */
+//     if (fileLink) {
+//       let url;
+//       try {
+//         url = new URL(fileLink.trim());
+//       } catch {
+//         return res.status(400).json({ message: "Invalid URL" });
+//       }
+
+//       if (url.protocol !== "https:") {
+//         return res.status(400).json({ message: "HTTPS only" });
+//       }
+
+//       book.fileUrl = url.href;
+//       book.fileType = "link";
+//     }
+
+//     await book.save();
+//     res.json(book);
+//   } catch (err) {
+//     console.error("UPDATE ERROR:", err);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
+
 export const updateBook = async (req, res) => {
   try {
     if (!req.user?.id) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const { title, author, description, fileLink } = req.body;
-
-    // ✅ FIXED: ownership check
     const book = await Book.findOne({
       _id: req.params.id,
       user: req.user.id
@@ -863,6 +1061,8 @@ export const updateBook = async (req, res) => {
     if (!book) {
       return res.status(404).json({ message: "Not found" });
     }
+
+    const { title, author, description, fileLink } = req.body;
 
     if (title && textRegex.test(title.trim())) {
       book.title = title.trim();
@@ -879,54 +1079,51 @@ export const updateBook = async (req, res) => {
       });
     }
 
-    /* ========= FILE ========= */
+    /* ================= FILE ================= */
+
     if (req.file) {
-      const buffer = req.file.buffer;
+      const filePath = req.file.path;
+
+      const buffer = await fs.readFile(filePath);
+
       const detected = await fileTypeFromBuffer(buffer);
 
       if (!detected || !allowedRealMimeTypes.includes(detected.mime)) {
+        await fs.unlink(filePath).catch(() => {});
         return res.status(400).json({ message: "Invalid file type" });
       }
 
-      const tempPath = path.join(
-        os.tmpdir(),
-        `${Date.now()}-${req.file.originalname}`
+      const clam = await initClamAV();
+
+      if (process.env.ENABLE_VIRUS_SCAN === "true" && clam) {
+        const infected = await clam.isInfected(filePath);
+
+        if (infected) {
+          await fs.unlink(filePath).catch(() => {});
+          return res.status(400).json({ message: "Malware detected" });
+        }
+      }
+
+      let finalBuffer = buffer;
+
+      if (detected.mime !== "application/pdf") {
+        finalBuffer = await convertWithTimeout(buffer);
+      }
+
+      const upload = await uploadToCloudinary(
+        finalBuffer,
+        `${Date.now()}-book`
       );
 
-      try {
-        await fs.writeFile(tempPath, buffer);
+      book.fileUrl = upload.secure_url + "?fl_attachment";
+      book.fileType = "file";
+      book.fileLink = null;
 
-        const clam = await initClamAV();
-
-        if (process.env.ENABLE_VIRUS_SCAN === "true"&&clam) {
-          console.log("ClamAV initialized for update:", !!clam);
-          const infected = await clam.isInfected(tempPath);
-          if (infected) {
-            console.warn("Malware detected in uploaded file");
-            return res.status(400).json({ message: "Malware detected" });
-          }
-        }
-
-        let finalBuffer = buffer;
-
-        if (detected.mime !== "application/pdf") {
-          finalBuffer = await convertWithTimeout(buffer);
-        }
-
-        const upload = await uploadToCloudinary(
-          finalBuffer,
-          `${Date.now()}-book`
-        );
-
-        book.fileUrl = upload.secure_url + "?fl_attachment";
-        book.fileType = "file";
-        book.fileLink = null;
-      } finally {
-        await fs.unlink(tempPath).catch(() => {});
-      }
+      await fs.unlink(filePath).catch(() => {});
     }
 
-    /* ========= LINK ========= */
+    /* ================= LINK ================= */
+
     if (fileLink) {
       let url;
       try {
@@ -944,9 +1141,10 @@ export const updateBook = async (req, res) => {
     }
 
     await book.save();
-    res.json(book);
+
+    return res.json(book);
   } catch (err) {
     console.error("UPDATE ERROR:", err);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
