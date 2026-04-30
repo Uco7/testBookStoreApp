@@ -5,7 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
 // Base URL
-const APPURl ="https://testbookstoreapp-backend-my8t.onrender.com";
+const APPURl ="https://70c2-102-90-101-64.ngrok-free.app";
 // const APPURl ="https://b318-102-90-103-207.ngrok-free.app";
 
 export const BookContext = createContext();
@@ -24,7 +24,7 @@ export function BookProvider({ children }) {
   const fetchBooks = async () => {
     try {
       const token = await AsyncStorage.getItem("token");
-      const res = await axios.get(`${APPURl}/get/books`, {
+      const res = await axios.get(`${APPURl}/api/books/get/all-books`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setBooks(res.data);
@@ -45,7 +45,7 @@ export function BookProvider({ children }) {
 
       if (!title) {
         throw new Error("Title is required");
-      }
+          }
 
       formData.append("title", title);
 
@@ -61,7 +61,7 @@ export function BookProvider({ children }) {
         });
       }
 
-      const response = await fetch(`${APPURl}/books`, {
+      const response = await fetch(`${APPURl}/api/books/create-book`, {
         method: "POST",
         body: formData,
         headers: {
@@ -116,7 +116,7 @@ export function BookProvider({ children }) {
         });
       }
 
-      await axios.put(`${APPURl}/books/${bookId}`, formData, {
+      await axios.put(`${APPURl}/api/books/update-book/${bookId}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
@@ -137,7 +137,7 @@ export function BookProvider({ children }) {
     try {
       const token = await AsyncStorage.getItem("token");
 
-      await axios.delete(`${APPURl}/books/${bookId}`, {
+      await axios.delete(`${APPURl}/api/books/delete-book/${bookId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

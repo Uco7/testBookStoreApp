@@ -188,7 +188,6 @@
 //   }
 // }
 
-
 {
   "expo": {
     "name": "BookStore",
@@ -201,7 +200,7 @@
     "scheme": "bookstore",
     "icon": "./assets/logo.jpeg",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/logo.jpeg",
       "resizeMode": "contain",
@@ -222,6 +221,7 @@
     },
     "plugins": [
       "expo-router",
+      "expo-dev-client",
       [
         "expo-navigation-bar",
         {
@@ -235,13 +235,13 @@
       ]
     ],
     "updates": {
-       "enabled": false
+      "enabled": false
     },
     "assetBundlePatterns": ["**/*"],
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "7893c41a-db0f-47ff-8b48-ed1e9f0b0bb9" // The ID you just linked
+        "projectId": "7893c41a-db0f-47ff-8b48-ed1e9f0b0bb9"
       }
     },
     "owner": "ucmobileapk",

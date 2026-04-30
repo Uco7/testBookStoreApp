@@ -45,7 +45,10 @@ export default function Create() {
   );
 
   const pickFile = async () => {
-    const result = await DocumentPicker.getDocumentAsync({});
+    const result = await DocumentPicker.getDocumentAsync({
+      type: "*/*",
+      copyToCacheDirectory: true,
+    });
     if (!result.canceled) setFile(result.assets[0]);
   };
 

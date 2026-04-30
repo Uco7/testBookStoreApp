@@ -1,0 +1,643 @@
+
+
+import Book from "../models/book.js";
+import { convertoPDF } from "../config/convert.js";
+import { uploadToCloudinary } from "../config/uploadToCloudinary.js";
+import sanitizeHtml from "sanitize-html";
+import { fileTypeFromBuffer } from "file-type";
+
+const descriptionRegex = /^[A-Za-z0-9\s.,'"\-?!()]{0,2000}$/;
+const textRegex = /^[A-Za-z0-9\s.,'-]+$/;
+
+const allowedRealMimeTypes = [
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "image/jpeg",
+  "image/png"
+];
+
+export const createBook = async (req, res) => {
+  try {
+    const { title, author, description, fileLink } = req.body;
+
+    if (!title) {
+      return res.status(400).json({
+        message: "title field is required"
+      });
+    }
+
+    if (typeof title !== "string" || title.trim() === "") {
+      return res.status(400).json({
+        message: "valid title field is required"
+      });
+    }
+
+    if (!textRegex.test(title.trim())) {
+      return res.status(400).json({
+        message: "invalid title field"
+      });
+    }
+
+    if (author != null) {
+      if (typeof author !== "string") {
+        return res.status(400).json({
+          message: "invalid author field"
+        });
+      }
+
+      const cleanAuthor = author.trim();
+
+      if (cleanAuthor === "" || !textRegex.test(cleanAuthor)) {
+        return res.status(400).json({
+          message: "invalid author field"
+        });
+      }
+    }
+
+    if (description != null) {
+      if (typeof description !== "string") {
+        return res.status(400).json({
+          message: "invalid description field"
+        });
+      }
+
+      const cleanDesc = description.trim();
+
+      if (
+        cleanDesc === "" ||
+        !descriptionRegex.test(cleanDesc)
+      ) {
+        return res.status(400).json({
+          message: "invalid description field"
+        });
+      }
+    }
+
+    const cleanDescription = description
+      ? sanitizeHtml(description, {
+          allowedTags: [],
+          allowedAttributes: {}
+        })
+      : "";
+
+    let fileUrl = null;
+    let fileType = null;
+
+    if (req.file) {
+      const buffer = req.file.buffer;
+
+      const detectedType = await fileTypeFromBuffer(buffer);
+
+      if (!detectedType) {
+        return res.status(400).json({
+          message: "Unable to detect actual file type"
+        });
+      }
+
+      if (!allowedRealMimeTypes.includes(detectedType.mime)) {
+        return res.status(400).json({
+          message: "Actual file type is not allowed"
+        });
+      }
+
+      let finalBuffer = buffer;
+
+      if (detectedType.mime !== "application/pdf") {
+        finalBuffer = await convertoPDF(buffer);
+      }
+
+      const fileName = `${Date.now()}-book`;
+
+      const uploadResult = await uploadToCloudinary(
+        finalBuffer,
+        fileName
+      );
+
+      fileUrl = uploadResult.secure_url + "?fl_attachment";
+      fileType = "file";
+    }
+
+    if (fileLink != null) {
+      if (
+        typeof fileLink !== "string" ||
+        fileLink.trim() === ""
+      ) {
+        return res.status(400).json({
+          message: "provide a valid https link"
+        });
+      }
+
+      try {
+        const cleanLink = new URL(fileLink.trim());
+
+        if (cleanLink.protocol !== "https:") {
+          return res.status(400).json({
+            message: "only https links are allowed"
+          });
+        }
+
+        fileUrl = null;
+        fileType = "link";
+      } catch {
+        return res.status(400).json({
+          message: "invalid URL format"
+        });
+      }
+    }
+
+    const book = new Book({
+      title: title.trim(),
+      author: author ? author.trim() : "",
+      description: cleanDescription,
+      fileUrl,
+      fileLink: fileLink ? fileLink.trim() : null,
+      fileType,
+      user: req.user?.id
+    });
+
+    await book.save();
+
+    res.status(201).json(book);
+  } catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
+  }
+};
+
+export const updateBook = async (req, res) => {
+  try {
+    const { title, author, description, fileLink } = req.body;
+
+    const book = await Book.findById(req.params.id);
+
+    if (!book) {
+      return res.status(404).json({
+        message: "book not found"
+      });
+    }
+
+    if (title != null) {
+      if (typeof title !== "string") {
+        return res.status(400).json({
+          message: "invalid title field"
+        });
+      }
+
+      const cleanTitle = title.trim();
+
+      if (
+        cleanTitle === "" ||
+        !textRegex.test(cleanTitle)
+      ) {
+        return res.status(400).json({
+          message: "invalid title field"
+        });
+      }
+
+      book.title = cleanTitle;
+    }
+
+    if (author != null) {
+      if (typeof author !== "string") {
+        return res.status(400).json({
+          message: "invalid author field"
+        });
+      }
+
+      const cleanAuthor = author.trim();
+
+      if (
+        cleanAuthor === "" ||
+        !textRegex.test(cleanAuthor)
+      ) {
+        return res.status(400).json({
+          message: "invalid author field"
+        });
+      }
+
+      book.author = cleanAuthor;
+    }
+
+    if (description != null) {
+      if (typeof description !== "string") {
+        return res.status(400).json({
+          message: "invalid description field"
+        });
+      }
+
+      const cleanDesc = description.trim();
+
+      if (
+        cleanDesc === "" ||
+        !descriptionRegex.test(cleanDesc)
+      ) {
+        return res.status(400).json({
+          message: "invalid description field"
+        });
+      }
+
+      book.description = sanitizeHtml(description, {
+        allowedTags: [],
+        allowedAttributes: {}
+      });
+    }
+
+    if (req.file) {
+      const buffer = req.file.buffer;
+
+      const detectedType = await fileTypeFromBuffer(buffer);
+
+      if (!detectedType) {
+        return res.status(400).json({
+          message: "Unable to detect actual file type"
+        });
+      }
+
+      if (!allowedRealMimeTypes.includes(detectedType.mime)) {
+        return res.status(400).json({
+          message: "Actual file type is not allowed"
+        });
+      }
+
+      let finalBuffer = buffer;
+
+      if (detectedType.mime !== "application/pdf") {
+        finalBuffer = await convertoPDF(buffer);
+      }
+
+      const filename = `${Date.now()}-book`;
+
+      const uploadResult = await uploadToCloudinary(
+        finalBuffer,
+        filename
+      );
+
+      book.fileUrl =
+        uploadResult.secure_url + "?fl_attachment";
+
+      book.fileLink = null;
+      book.fileType = "file";
+    }
+
+    if (fileLink != null) {
+      if (
+        typeof fileLink !== "string" ||
+        fileLink.trim() === ""
+      ) {
+        return res.status(400).json({
+          message: "provide a valid https link"
+        });
+      }
+
+      try {
+        const cleanLink = new URL(fileLink.trim());
+
+        if (cleanLink.protocol !== "https:") {
+          return res.status(400).json({
+            message: "only https links are allowed"
+          });
+        }
+
+        book.fileLink = cleanLink.href;
+        book.fileUrl = null;
+        book.fileType = "link";
+      } catch {
+        return res.status(400).json({
+          message: "invalid URL format"
+        });
+      }
+    }
+
+    await book.save();
+
+    res.json(book);
+  } catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
+  }
+};
+
+
+
+
+import Book from "../models/book.js";
+import { convertoPDF } from "../config/convert.js";
+import { uploadToCloudinary } from "../config/uploadToCloudinary.js";
+import sanitizeHtml from "sanitize-html";
+import { fileTypeFromBuffer } from "file-type";
+import fs from "fs/promises";
+import path from "path";
+import os from "os";
+import ClamScan from "clamscan";
+
+/* =========================
+   CONFIG
+========================= */
+
+const textRegex = /^[A-Za-z0-9\s.,'-]+$/;
+const descriptionRegex = /^[A-Za-z0-9\s.,'"\-?!()]{0,2000}$/;
+
+const allowedMimeTypes = [
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "image/jpeg",
+  "image/png"
+];
+
+/* =========================
+   CLAMAV INIT
+========================= */
+
+const initClamAV = async () => {
+  const clamscan = await new ClamScan().init({
+    removeInfected: false,
+    quarantineInfected: false,
+    preference: "clamdscan",
+    clamdscan: {
+      host: "127.0.0.1",
+      port: 3310,
+      timeout: 60000,
+      localFallback: true
+    }
+  });
+
+  return clamscan;
+};
+
+/* =========================
+   CREATE BOOK
+========================= */
+
+export const createBook = async (req, res) => {
+  try {
+    const { title, author, description, fileLink } = req.body;
+
+    if (!title || typeof title !== "string" || title.trim() === "") {
+      return res.status(400).json({ message: "Invalid title" });
+    }
+
+    if (!textRegex.test(title.trim())) {
+      return res.status(400).json({ message: "Invalid title format" });
+    }
+
+    let fileUrl = null;
+    let fileType = null;
+
+    /* =========================
+       FILE UPLOAD + SCAN
+    ========================= */
+
+    if (req.file) {
+      const buffer = req.file.buffer;
+
+      // 1. Detect real file type
+      const detected = await fileTypeFromBuffer(buffer);
+
+      if (!detected || !allowedMimeTypes.includes(detected.mime)) {
+        return res.status(400).json({
+          message: "Invalid or unsupported file type"
+        });
+      }
+
+      // 2. Virus scan (ClamAV)
+      const tempFile = path.join(
+        os.tmpdir(),
+        `${Date.now()}-${req.file.originalname}`
+      );
+
+      await fs.writeFile(tempFile, buffer);
+
+      const clam = await initClamAV();
+      const scanResult = await clam.isInfected(tempFile);
+
+      await fs.unlink(tempFile);
+
+      if (scanResult) {
+        return res.status(400).json({
+          message: "File failed virus scan"
+        });
+      }
+
+      // 3. Convert if needed
+      let finalBuffer = buffer;
+
+      if (detected.mime !== "application/pdf") {
+        finalBuffer = await convertoPDF(buffer);
+      }
+
+      // 4. Upload
+      const upload = await uploadToCloudinary(
+        finalBuffer,
+        `${Date.now()}-book`
+      );
+
+      fileUrl = upload.secure_url + "?fl_attachment";
+      fileType = "file";
+    }
+
+    /* =========================
+       LINK HANDLING
+    ========================= */
+
+    if (fileLink) {
+      const trimmed = fileLink.trim();
+
+      let url;
+      try {
+        url = new URL(trimmed);
+      } catch {
+        return res.status(400).json({ message: "Invalid URL format" });
+      }
+
+      if (url.protocol !== "https:") {
+        return res.status(400).json({
+          message: "Only HTTPS links allowed"
+        });
+      }
+
+      fileUrl = url.href;
+      fileType = "link";
+    }
+
+    /* =========================
+       SAVE
+    ========================= */
+
+    const book = new Book({
+      title: title.trim(),
+      author: author?.trim() || "",
+      description: description
+        ? sanitizeHtml(description, {
+            allowedTags: [],
+            allowedAttributes: {}
+          })
+        : "",
+      fileUrl,
+      fileType,
+      user: req.user?.id
+    });
+
+    await book.save();
+
+    return res.status(201).json(book);
+  } catch (err) {
+    return res.status(500).json({
+      message: err.message
+    });
+  }
+};
+
+/* =========================
+   UPDATE BOOK
+========================= */
+
+export const updateBook = async (req, res) => {
+  try {
+    const { title, author, description, fileLink } = req.body;
+
+    const book = await Book.findById(req.params.id);
+
+    if (!book) {
+      return res.status(404).json({ message: "Book not found" });
+    }
+
+    /* =========================
+       UPDATE TEXT FIELDS
+    ========================= */
+
+    if (title) {
+      if (typeof title !== "string" || !textRegex.test(title.trim())) {
+        return res.status(400).json({ message: "Invalid title" });
+      }
+      book.title = title.trim();
+    }
+
+    if (author) {
+      if (typeof author !== "string" || !textRegex.test(author.trim())) {
+        return res.status(400).json({ message: "Invalid author" });
+      }
+      book.author = author.trim();
+    }
+
+    if (description) {
+      if (
+        typeof description !== "string" ||
+        !descriptionRegex.test(description.trim())
+      ) {
+        return res.status(400).json({ message: "Invalid description" });
+      }
+
+      book.description = sanitizeHtml(description, {
+        allowedTags: [],
+        allowedAttributes: {}
+      });
+    }
+
+    /* =========================
+       FILE UPLOAD + SCAN
+    ========================= */
+
+    if (req.file) {
+      const buffer = req.file.buffer;
+
+      const detected = await fileTypeFromBuffer(buffer);
+
+      if (!detected || !allowedMimeTypes.includes(detected.mime)) {
+        return res.status(400).json({
+          message: "Invalid file type"
+        });
+      }
+
+      const tempFile = path.join(
+        os.tmpdir(),
+        `${Date.now()}-${req.file.originalname}`
+      );
+
+      await fs.writeFile(tempFile, buffer);
+
+      const clam = await initClamAV();
+      const scanResult = await clam.isInfected(tempFile);
+
+      await fs.unlink(tempFile);
+
+      if (scanResult) {
+        return res.status(400).json({
+          message: "File failed virus scan"
+        });
+      }
+
+      let finalBuffer = buffer;
+
+      if (detected.mime !== "application/pdf") {
+        finalBuffer = await convertoPDF(buffer);
+      }
+
+      const upload = await uploadToCloudinary(
+        finalBuffer,
+        `${Date.now()}-book`
+      );
+
+      book.fileUrl = upload.secure_url + "?fl_attachment";
+      book.fileType = "file";
+      book.fileLink = null;
+    }
+
+    /* =========================
+       LINK UPDATE
+    ========================= */
+
+    if (fileLink) {
+      let url;
+
+      try {
+        url = new URL(fileLink.trim());
+      } catch {
+        return res.status(400).json({ message: "Invalid URL" });
+      }
+
+      if (url.protocol !== "https:") {
+        return res.status(400).json({
+          message: "Only HTTPS allowed"
+        });
+      }
+
+      book.fileLink = url.href;
+      book.fileUrl = null;
+      book.fileType = "link";
+    }
+
+    await book.save();
+
+    return res.json(book);
+  } catch (err) {
+    return res.status(500).json({
+      message: err.message
+    });
+  }
+};
+
+export const getBooks=async(req,res)=>{
+    try {
+        const books=await Book.find({user:req.user.id}).sort({createdAt:-1});
+        if(!books){
+            return res.status(400).json({
+                message:"no data upload  file or docs"
+            })
+        }
+        console.log("book",books)
+        res.json(books)
+    } catch (err) {
+        res.status(500).json({
+            message:err.message 
+        })
+        
+    }
+}

@@ -93,68 +93,109 @@
 
 
 
-import path from "path";
+// import path from "path";
+// import dotenv from "dotenv";
+// dotenv.config();
+
+// import { dbconection } from "./config/db.js";
+// import express from "express";
+// import cors from "cors";
+// import fs from "fs";
+// import authRoutes from "./routes/authRoutes.js";
+// import bookRoutes from "./routes/bookRoute.js";
+// import { uploadsDir } from "./config/path.js";
+
+// const app = express();
+
+// // =========================
+// // DATABASE
+// // =========================
+// dbconection();
+
+// // =========================
+// // MIDDLEWARE
+// // =========================
+// app.use(cors());
+// app.use(express.json());
+// app.set("trust proxy", true);
+
+// // =========================
+// // PATH SETUP
+// // =========================
+// app.use("/files", express.static(uploadsDir));
+
+// // =========================
+// // LOGGING
+// // =========================
+// app.use((req, res, next) => {
+//   console.log(`🔥 [${new Date().toISOString()}] ${req.method} ${req.url}`);
+//   next();
+// });
+
+// // =========================
+// // ROUTES
+// // =========================
+// app.get("/test", (req, res) => {
+//   res.send("OK - Server is Live");
+// });
+// // testing front end
+// // app.use(express.static(path.join(__dirname, "frontEnd")))
+// // app.use(express.urlencoded({extended:true}))
+// // app.get("/register",(req,res)=>{
+// //   res.sendFile(path.join(__dirname,"frontEnd","register.html"))
+// // })
+// // testing front end
+
+// app.use(authRoutes);
+// app.use(bookRoutes);
+
+// // =========================
+// // START SERVER
+// // =========================
+// const PORT = process.env.PORT || 5000;
+
+// app.listen(PORT, "0.0.0.0", () => {
+//   console.log(`🚀 Server running on port ${PORT}`);
+//   console.log(`📡 Base URL: ${process.env.BASE_URL || "Localhost"}`);
+// });
 import dotenv from "dotenv";
 dotenv.config();
 
-import { dbconection } from "./config/db.js";
 import express from "express";
 import cors from "cors";
-import fs from "fs";
+
+import { dbconection } from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import bookRoutes from "./routes/bookRoute.js";
-import { uploadsDir } from "./config/path.js";
+import { generalLimiter } from "./middleWare/limiter.js";
 
 const app = express();
 
-// =========================
-// DATABASE
-// =========================
 dbconection();
 
-// =========================
-// MIDDLEWARE
-// =========================
 app.use(cors());
 app.use(express.json());
-app.set("trust proxy", true);
+app.set("trust proxy", 1);
 
-// =========================
-// PATH SETUP
-// =========================
-app.use("/files", express.static(uploadsDir));
+// ✅ GLOBAL LIMITER
+app.use("/api", generalLimiter);
 
-// =========================
-// LOGGING
-// =========================
+// logging
 app.use((req, res, next) => {
   console.log(`🔥 [${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
 
-// =========================
-// ROUTES
-// =========================
+// routes
 app.get("/test", (req, res) => {
   res.send("OK - Server is Live");
 });
-// testing front end
-// app.use(express.static(path.join(__dirname, "frontEnd")))
-// app.use(express.urlencoded({extended:true}))
-// app.get("/register",(req,res)=>{
-//   res.sendFile(path.join(__dirname,"frontEnd","register.html"))
-// })
-// testing front end
 
-app.use(authRoutes);
-app.use(bookRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/books", bookRoutes);
 
-// =========================
-// START SERVER
-// =========================
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📡 Base URL: ${process.env.BASE_URL || "Localhost"}`);
 });

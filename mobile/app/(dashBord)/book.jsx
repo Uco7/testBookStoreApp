@@ -112,23 +112,23 @@ useEffect(() => {
 
 const openFile = async (book) => {
   try {
-    // ✅ CASE 1: External link (Facebook, YouTube, etc.)
     if (book.fileLink) {
       const supported = await Linking.canOpenURL(book.fileLink);
-
-      if (supported) {
-        await Linking.openURL(book.fileLink);
-      } else {
-        Alert.alert("Error", "Cannot open this link");
-      }
+      if (supported) await Linking.openURL(book.fileLink);
       return;
     }
 
-    // ✅ CASE 2: File (PDF, DOC, etc.)
     if (book.fileUrl) {
       console.log("Opening file URL:", book.fileUrl);
 
-      const filename = book.fileUrl.split("/").pop();
+      const cleanUrl = book.fileUrl.split("?")[0];
+      let filename = cleanUrl.split("/").pop();
+
+      // 🔥 FIX: ensure .pdf extension
+      if (!filename.endsWith(".pdf")) {
+        filename = filename + ".pdf";
+      }
+
       const localUri = FileSystem.documentDirectory + filename;
 
       const downloadResult = await FileSystem.downloadAsync(
@@ -137,6 +137,8 @@ const openFile = async (book) => {
       );
 
       const fileInfo = await FileSystem.getInfoAsync(downloadResult.uri);
+
+      console.log("File info:", fileInfo);
 
       if (!fileInfo.exists || fileInfo.size < 1000) {
         throw new Error("Invalid file");
@@ -153,14 +155,14 @@ const openFile = async (book) => {
       return;
     }
 
-    // ❌ No file or link
     Alert.alert("Error", "No file or link available");
-
   } catch (error) {
     console.log("OPEN ERROR:", error);
     Alert.alert("Error", "Failed to open content");
   }
 };
+
+    
   const handleDelete = (bookId) => {
     Alert.alert("Delete Book", "Are you sure?", [
       { text: "Cancel", style: "cancel" },

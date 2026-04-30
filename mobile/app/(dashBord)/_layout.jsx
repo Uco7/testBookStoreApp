@@ -52,6 +52,7 @@ export default function DashBordLayout() {
           options={{
             headerShown: false,
             href: null ,
+          
           }}
         />
         <Tabs.Screen name="updateBook" options={{ href: null }} />

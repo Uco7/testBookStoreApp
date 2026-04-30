@@ -1,51 +1,65 @@
 // import multer from "multer";
-// import path from "path";
-// import fs from "fs";
-// import { fileURLToPath } from "url";
-// import { dirname } from "path";
 
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = dirname(__filename);
+// const storage = multer.memoryStorage();
 
-// const storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     const dir = path.join(__dirname, "../uploads");
-//     if (!fs.existsSync(dir)) {
-//       fs.mkdirSync(dir, { recursive: true });
-//     }
-//     cb(null, dir);
+// const allowedMimeTypes = [
+//   "application/pdf",
+//   "application/msword",
+//   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+//   "application/vnd.ms-powerpoint",
+//   "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+//   "image/jpeg",
+//   "image/png"
+// ];
+
+// // ✅ File validation belongs here
+// const fileFilter = (req, file, cb) => {
+//   if (!allowedMimeTypes.includes(file.mimetype)) {
+//     return cb(new Error("Invalid file type"), false);
+//   }
+
+//   cb(null, true);
+// };
+
+// const upload = multer({
+//   storage,
+//   limits: {
+//     fileSize: 20 * 1024 * 1024 // 20MB
 //   },
-//   filename: (req, file, cb) => {
-//     const cleanName = file.originalname.replace(/\s+/g, "_");
-//     cb(null, `${Date.now()}-${cleanName}`);
-//   },
+//   fileFilter
 // });
 
-// const upload = multer({ storage });
 // export default upload;
 
 
 
-
-
 import multer from "multer";
-import fs from "fs";
-import { uploadsDir } from "../../config/path.js";
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
-    cb(null, uploadsDir);
-  },
+const storage = multer.memoryStorage();
 
-  filename: (req, file, cb) => {
-    const cleanName = file.originalname.replace(/\s+/g, "_");
-    cb(null, `${Date.now()}-${cleanName}`);
+const allowedMimeTypes = [
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "image/jpeg",
+  "image/png"
+];
+
+const fileFilter = (req, file, cb) => {
+  if (!allowedMimeTypes.includes(file.mimetype)) {
+    return cb(new Error("Invalid file type"), false);
+  }
+  cb(null, true);
+};
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 20 * 1024 * 1024
   },
+  fileFilter
 });
-
-const upload = multer({ storage });
 
 export default upload;

@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import user from "../models/user.js";
 import { login } from "./authController.js";
+import { error } from "console";
 
 const normalizeEmail=(email)=>email?toLowerCase().trim();
 const normalizeUserName=(inputData)=>inputData?.replace(/[^a-zA-Z\s]/g, "").trim()
@@ -194,3 +195,76 @@ export const getUser=async(req,res)=>{
         
     }
 }
+
+export const forgetpasword=async(req,res)=>{
+    try {
+        const {identifyer}=req.body;
+        if(!identifyer){
+            res.status(400).json({
+                message:"input filed empty"
+            })
+        }
+        const normalizeIdentifier=identifyer?{email:EMAIL_REGEX.test(normalizeEmail(identifyer))}:{userName:USERNAME_REGEX.test(normalizeUserName(identifyer))}
+        const  user=await User.findOne({
+            $or:[{email:normalizeIdentifier},{username:normalizeIdentifier}]
+        });
+        if(!user) return res.status(400).json({
+            message:"user not found"
+        })
+        const otp=Math.floor(100000 + Math.random()*900000).toString() 
+        user.resetPasswordOTP=crypto
+        .createHash("sha256")
+        .update(otp)
+        .digest("hex")
+        user.otpExpires=Date.now()+ 15*60*1000;
+        await user.save()
+         sendMail({
+            from:"BookSore App",
+            to:user.email,
+            subject:"password reset pin",
+            html:`<h2>hi ${user.fullName} here is your otp reset pin for your password${otp}</h2>`
+
+        }).catch((error)=>{
+            console.log("email sending error",error)
+            res.status(400).json({
+                message:"error sending mail",error
+            })
+        })
+        
+
+        
+    } catch (error) {
+    console.log("error",error);
+    res.status(500).json({
+        message:"server erorr/network conection terminated"
+    })
+        
+    }
+}
+export const resetPassword=async(req,res)=>{
+    try {
+        const {identifyer,otp,password}=req.body; 
+        if(identifyer.typeof!=="string"||otp.typeof!=="string"||password.typeof!=="string"){
+            return res.status(400).json({
+                message:"provide the required field"
+            })
+        }
+     const query=(identifyer&&EMAIL_REGEX.test(identifyer))?{email:normalizeEmail(identifyer)}:{userName:normalizeUserName(identifyer)}
+     const hashOTP=crypto.createHash("sha256").update(otp).digest("hex")
+     const newPassword=await bycrpt.hash(password,10)
+     const user=await User.findByIdAndUpdate({
+        $or:[{email:normalizeEmail(query)},{userName:normalizeUserName(query)}],
+        resetPasswordOTP:hashOTP,
+        resetPasswordExpires:{$gt:Date.now()},
+        {
+            $set:{
+                password:newPassword,
+                resetPasswordOTP:null,
+                resetPasswordExpires:null
+
+        }
+        },        {new:true}
+        
+
+     })
+        

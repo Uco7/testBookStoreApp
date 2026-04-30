@@ -7,20 +7,20 @@ import {
   forgotPassword,
   resetPassword
 } from "../controller/authController.js";
+import { authLimiter } from "../middleWare/limiter.js";
 
 import authMiddleware from "../middleWare/authMiddleWare.js";
 
 const router = express.Router();
-
-router.post("/register/request", requestRegisterOTP);
-router.post("/register", verifyAndRegister);
-router.post("/login", login);
-router.get("/user", authMiddleware, getUser);
-
+router.post("/register/request", authLimiter, requestRegisterOTP);
+router.post("/register", authLimiter, verifyAndRegister);
+router.post("/login", authLimiter, login);
+router.get("/user", authMiddleware,authLimiter, getUser);
 
 
-router.post("/forgot-password",forgotPassword)
-router.post("/reset-password",resetPassword)
+
+router.post("/forgot-password", authLimiter, forgotPassword)
+router.post("/reset-password", authLimiter, resetPassword)
 // router.post("/register", register);
 // router.post("/login", login);
 // router.get("/user", authMiddleware, getUser);
