@@ -701,6 +701,7 @@ const initClamAV = async () => {
         active: true
       }
     });
+    console.log("ClamAV initialized successfully");
 
     return clam;
   } catch (err) {
@@ -762,8 +763,10 @@ export const createBook = async (req, res) => {
         clam = await initClamAV();
 
         if (process.env.ENABLE_VIRUS_SCAN === "true"&& clam) {
+          console.log("ClamAV initialized for create:", !!clam);
           const infected = await clam.isInfected(tempPath);
           if (infected) {
+            console.log("Malware detected in uploaded file");
             return res.status(400).json({ message: "Malware detected" });
           }
         }
@@ -896,8 +899,10 @@ export const updateBook = async (req, res) => {
         const clam = await initClamAV();
 
         if (process.env.ENABLE_VIRUS_SCAN === "true"&&clam) {
+          console.log("ClamAV initialized for update:", !!clam);
           const infected = await clam.isInfected(tempPath);
           if (infected) {
+            console.warn("Malware detected in uploaded file");
             return res.status(400).json({ message: "Malware detected" });
           }
         }
