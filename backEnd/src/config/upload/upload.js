@@ -30,13 +30,12 @@
 // });
 
 // export default upload;
-
-
 import multer from "multer";
+import os from "os";
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/");
+    cb(null, os.tmpdir());
   },
   filename: (req, file, cb) => {
     cb(null, `${Date.now()}-${file.originalname}`);
@@ -53,19 +52,17 @@ const allowedMimeTypes = [
   "image/png"
 ];
 
-const fileFilter = (req, file, cb) => {
-  if (!allowedMimeTypes.includes(file.mimetype)) {
-    return cb(new Error("Invalid file type"), false);
-  }
-  cb(null, true);
-};
-
 const upload = multer({
   storage,
   limits: {
-    fileSize: 10 * 1024 * 1024 // recommend 10MB for Render stability
+    fileSize: 10 * 1024 * 1024 // 10MB safer for Render
   },
-  fileFilter
+  fileFilter: (req, file, cb) => {
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      return cb(new Error("Invalid file type"), false);
+    }
+    cb(null, true);
+  }
 });
 
 export default upload;

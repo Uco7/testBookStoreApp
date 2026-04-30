@@ -658,27 +658,24 @@
 // };
 
 
-
-
 import Book from "../models/book.js";
 import { convertoPDF } from "../config/convert.js";
 import { uploadToCloudinary } from "../config/uploadToCloudinary.js";
 import sanitizeHtml from "sanitize-html";
 import { fileTypeFromBuffer } from "file-type";
 
-import ClamScan from "clamscan";
 import fs from "fs/promises";
 import path from "path";
 import os from "os";
+import book from "../models/book.js";
 
 /* =========================
-   CONFIG
+   CONFIG (LIGHTWEIGHT SECURITY)
 ========================= */
 
-const descriptionRegex = /^[A-Za-z0-9\s.,'"\-?!()]{0,2000}$/;
 const textRegex = /^[A-Za-z0-9\s.,'-]+$/;
 
-const allowedRealMimeTypes = [
+const allowedMimeTypes = [
   "application/pdf",
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -689,36 +686,14 @@ const allowedRealMimeTypes = [
 ];
 
 /* =========================
-   CLAMAV INIT (STRICT)
+   SAFE CONVERSION
 ========================= */
 
-const initClamAV = async () => {
-  try {
-    const clam = await new ClamScan().init({
-      preference: "clamscan",
-      clamscan: {
-        path: "/usr/bin/clamscan",
-        active: true
-      }
-    });
-    console.log("ClamAV initialized successfully");
-
-    return clam;
-  } catch (err) {
-    console.warn("ClamAV not available - skipping scan");
-    return null; // NEVER throw
-  }
-};
-
-/* =========================
-   SAFE PDF CONVERSION
-========================= */
-
-const convertWithTimeout = async (buffer, timeoutMs = 10000) => {
+const convertWithTimeout = async (buffer, timeout = 10000) => {
   return Promise.race([
     convertoPDF(buffer),
     new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("Conversion timeout")), timeoutMs)
+      setTimeout(() => reject(new Error("Conversion timeout")), timeout)
     )
   ]);
 };
@@ -727,168 +702,68 @@ const convertWithTimeout = async (buffer, timeoutMs = 10000) => {
    CREATE BOOK
 ========================= */
 
-// export const createBook = async (req, res) => {
-//   try {
-//     if (!req.user?.id) {
-//       return res.status(401).json({ message: "Unauthorized" });
-//     }
-
-//     const { title, author, description, fileLink } = req.body;
-
-//     if (!title || typeof title !== "string" || !textRegex.test(title.trim())) {
-//       return res.status(400).json({ message: "Invalid title" });
-//     }
-
-//     let fileUrl = null;
-//     let fileType = null;
-
-//     /* ========= FILE ========= */
-//     if (req.file) {
-//       const buffer = req.file.buffer;
-//       const detected = await fileTypeFromBuffer(buffer);
-
-//       if (!detected || !allowedRealMimeTypes.includes(detected.mime)) {
-//         return res.status(400).json({ message: "Invalid file type" });
-//       }
-
-//       const tempPath = path.join(
-//         os.tmpdir(),
-//         `${Date.now()}-${req.file.originalname}`
-//       );
-
-//       let clam;
-//       try {
-//         await fs.writeFile(tempPath, buffer);
-
-//         clam = await initClamAV();
-
-//         if (process.env.ENABLE_VIRUS_SCAN === "true"&& clam) {
-//           console.log("ClamAV initialized for create:", !!clam);
-//           const infected = await clam.isInfected(tempPath);
-//           if (infected) {
-//             console.log("Malware detected in uploaded file");
-//             return res.status(400).json({ message: "Malware detected" });
-//           }
-//         }
-
-//         let finalBuffer = buffer;
-
-//         if (detected.mime !== "application/pdf") {
-//           finalBuffer = await convertWithTimeout(buffer);
-//         }
-
-//         const upload = await uploadToCloudinary(
-//           finalBuffer,
-//           `${Date.now()}-book`
-//         );
-
-//         fileUrl = upload.secure_url + "?fl_attachment";
-//         fileType = "file";
-//       } finally {
-//         await fs.unlink(tempPath).catch(() => {});
-//       }
-//     }
-
-//     /* ========= LINK ========= */
-//     if (fileLink) {
-//       let url;
-//       try {
-//         url = new URL(fileLink.trim());
-//       } catch {
-//         return res.status(400).json({ message: "Invalid URL" });
-//       }
-
-//       if (url.protocol !== "https:") {
-//         return res.status(400).json({ message: "HTTPS only" });
-//       }
-
-//       fileUrl = url.href;
-//       fileType = "link";
-//     }
-
-//     const book = await Book.create({
-//       title: title.trim(),
-//       author: author?.trim() || "",
-//       description: description
-//         ? sanitizeHtml(description, { allowedTags: [], allowedAttributes: {} })
-//         : "",
-//       fileUrl,
-//       fileType,
-//       user: req.user.id
-//     });
-
-//     res.status(201).json(book);
-//   } catch (err) {
-//     console.error("CREATE ERROR:", err);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-
-
 export const createBook = async (req, res) => {
   try {
+    console.log("🔥 CREATE BOOK HIT");
+
     if (!req.user?.id) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
     const { title, author, description, fileLink } = req.body;
 
-    if (!title || typeof title !== "string" || !textRegex.test(title.trim())) {
+    /* ---------- VALIDATION ---------- */
+    if (!title || !textRegex.test(title.trim())) {
       return res.status(400).json({ message: "Invalid title" });
     }
 
     let fileUrl = null;
     let fileType = null;
 
-    /* ================= FILE ================= */
-
+    /* =========================
+       FILE UPLOAD FLOW
+    ========================= */
     if (req.file) {
-      // 🔥 FIX: support diskStorage ONLY
-      const filePath = req.file.path;
-
-      const buffer = await fs.readFile(filePath);
+      const buffer = req.file.buffer;
 
       const detected = await fileTypeFromBuffer(buffer);
 
-      if (!detected || !allowedRealMimeTypes.includes(detected.mime)) {
-        await fs.unlink(filePath).catch(() => {});
+      if (!detected || !allowedMimeTypes.includes(detected.mime)) {
         return res.status(400).json({ message: "Invalid file type" });
       }
 
-      await fs.writeFile(filePath, buffer);
-
-      const clam = await initClamAV();
-
-      if (process.env.ENABLE_VIRUS_SCAN === "true" && clam) {
-        const infected = await clam.isInfected(filePath);
-
-        if (infected) {
-          await fs.unlink(filePath).catch(() => {});
-          return res.status(400).json({ message: "Malware detected" });
-        }
-      }
-
-      let finalBuffer = buffer;
-
-      if (detected.mime !== "application/pdf") {
-        finalBuffer = await convertWithTimeout(buffer);
-      }
-
-      const upload = await uploadToCloudinary(
-        finalBuffer,
-        `${Date.now()}-book`
+      const tempPath = path.join(
+        os.tmpdir(),
+        `${Date.now()}-${req.file.originalname}`
       );
 
-      fileUrl = upload.secure_url + "?fl_attachment";
-      fileType = "file";
+      try {
+        await fs.writeFile(tempPath, buffer);
 
-      await fs.unlink(filePath).catch(() => {});
+        let finalBuffer = buffer;
+
+        if (detected.mime !== "application/pdf") {
+          finalBuffer = await convertWithTimeout(buffer);
+        }
+
+        const upload = await uploadToCloudinary(
+          finalBuffer,
+          `${Date.now()}-book`
+        );
+
+        fileUrl = upload.secure_url + "?fl_attachment";
+        fileType = "file";
+      } finally {
+        await fs.unlink(tempPath).catch(() => {});
+      }
     }
 
-    /* ================= LINK ================= */
-
+    /* =========================
+       LINK FLOW
+    ========================= */
     if (fileLink) {
       let url;
+
       try {
         url = new URL(fileLink.trim());
       } catch {
@@ -896,18 +771,24 @@ export const createBook = async (req, res) => {
       }
 
       if (url.protocol !== "https:") {
-        return res.status(400).json({ message: "HTTPS only" });
+        return res.status(400).json({ message: "Only HTTPS allowed" });
       }
 
       fileUrl = url.href;
       fileType = "link";
     }
 
+    /* =========================
+       SAVE
+    ========================= */
     const book = await Book.create({
       title: title.trim(),
       author: author?.trim() || "",
       description: description
-        ? sanitizeHtml(description, { allowedTags: [], allowedAttributes: {} })
+        ? sanitizeHtml(description, {
+            allowedTags: [],
+            allowedAttributes: {}
+          })
         : "",
       fileUrl,
       fileType,
@@ -920,135 +801,23 @@ export const createBook = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
-/* =========================
-   GET BOOKS
-========================= */
 
+
+// ================= GET BOOKS =================
 export const getBooks = async (req, res) => {
   try {
-    if (!req.user?.id) return res.status(401).json({ message: "Unauthorized" });
-
-    const books = await Book.find({ user: req.user.id }).sort({
-      createdAt: -1
-    });
-
+    const books = await Book.find({ user: req.user.id }).sort({ createdAt: -1 });
     res.json(books);
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: err.message });
   }
 };
 
-/* =========================
-   UPDATE BOOK (SECURE)
-========================= */
-
-// export const updateBook = async (req, res) => {
-//   try {
-//     if (!req.user?.id) {
-//       return res.status(401).json({ message: "Unauthorized" });
-//     }
-
-//     const { title, author, description, fileLink } = req.body;
-
-//     // ✅ FIXED: ownership check
-//     const book = await Book.findOne({
-//       _id: req.params.id,
-//       user: req.user.id
-//     });
-
-//     if (!book) {
-//       return res.status(404).json({ message: "Not found" });
-//     }
-
-//     if (title && textRegex.test(title.trim())) {
-//       book.title = title.trim();
-//     }
-
-//     if (author && textRegex.test(author.trim())) {
-//       book.author = author.trim();
-//     }
-
-//     if (description && descriptionRegex.test(description.trim())) {
-//       book.description = sanitizeHtml(description, {
-//         allowedTags: [],
-//         allowedAttributes: {}
-//       });
-//     }
-
-//     /* ========= FILE ========= */
-//     if (req.file) {
-//       const buffer = req.file.buffer;
-//       const detected = await fileTypeFromBuffer(buffer);
-
-//       if (!detected || !allowedRealMimeTypes.includes(detected.mime)) {
-//         return res.status(400).json({ message: "Invalid file type" });
-//       }
-
-//       const tempPath = path.join(
-//         os.tmpdir(),
-//         `${Date.now()}-${req.file.originalname}`
-//       );
-
-//       try {
-//         await fs.writeFile(tempPath, buffer);
-
-//         const clam = await initClamAV();
-
-//         if (process.env.ENABLE_VIRUS_SCAN === "true"&&clam) {
-//           console.log("ClamAV initialized for update:", !!clam);
-//           const infected = await clam.isInfected(tempPath);
-//           if (infected) {
-//             console.warn("Malware detected in uploaded file");
-//             return res.status(400).json({ message: "Malware detected" });
-//           }
-//         }
-
-//         let finalBuffer = buffer;
-
-//         if (detected.mime !== "application/pdf") {
-//           finalBuffer = await convertWithTimeout(buffer);
-//         }
-
-//         const upload = await uploadToCloudinary(
-//           finalBuffer,
-//           `${Date.now()}-book`
-//         );
-
-//         book.fileUrl = upload.secure_url + "?fl_attachment";
-//         book.fileType = "file";
-//         book.fileLink = null;
-//       } finally {
-//         await fs.unlink(tempPath).catch(() => {});
-//       }
-//     }
-
-//     /* ========= LINK ========= */
-//     if (fileLink) {
-//       let url;
-//       try {
-//         url = new URL(fileLink.trim());
-//       } catch {
-//         return res.status(400).json({ message: "Invalid URL" });
-//       }
-
-//       if (url.protocol !== "https:") {
-//         return res.status(400).json({ message: "HTTPS only" });
-//       }
-
-//       book.fileUrl = url.href;
-//       book.fileType = "link";
-//     }
-
-//     await book.save();
-//     res.json(book);
-//   } catch (err) {
-//     console.error("UPDATE ERROR:", err);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-
+// ====================update book=================
 export const updateBook = async (req, res) => {
   try {
+    console.log("🔥 UPDATE BOOK HIT");
+
     if (!req.user?.id) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -1072,60 +841,54 @@ export const updateBook = async (req, res) => {
       book.author = author.trim();
     }
 
-    if (description && descriptionRegex.test(description.trim())) {
+    if (description) {
       book.description = sanitizeHtml(description, {
         allowedTags: [],
         allowedAttributes: {}
       });
     }
 
-    /* ================= FILE ================= */
-
+    /* ---------- FILE ---------- */
     if (req.file) {
-      const filePath = req.file.path;
-
-      const buffer = await fs.readFile(filePath);
+      const buffer = req.file.buffer;
 
       const detected = await fileTypeFromBuffer(buffer);
 
-      if (!detected || !allowedRealMimeTypes.includes(detected.mime)) {
-        await fs.unlink(filePath).catch(() => {});
+      if (!detected || !allowedMimeTypes.includes(detected.mime)) {
         return res.status(400).json({ message: "Invalid file type" });
       }
 
-      const clam = await initClamAV();
-
-      if (process.env.ENABLE_VIRUS_SCAN === "true" && clam) {
-        const infected = await clam.isInfected(filePath);
-
-        if (infected) {
-          await fs.unlink(filePath).catch(() => {});
-          return res.status(400).json({ message: "Malware detected" });
-        }
-      }
-
-      let finalBuffer = buffer;
-
-      if (detected.mime !== "application/pdf") {
-        finalBuffer = await convertWithTimeout(buffer);
-      }
-
-      const upload = await uploadToCloudinary(
-        finalBuffer,
-        `${Date.now()}-book`
+      const tempPath = path.join(
+        os.tmpdir(),
+        `${Date.now()}-${req.file.originalname}`
       );
 
-      book.fileUrl = upload.secure_url + "?fl_attachment";
-      book.fileType = "file";
-      book.fileLink = null;
+      try {
+        await fs.writeFile(tempPath, buffer);
 
-      await fs.unlink(filePath).catch(() => {});
+        let finalBuffer = buffer;
+
+        if (detected.mime !== "application/pdf") {
+          finalBuffer = await convertWithTimeout(buffer);
+        }
+
+        const upload = await uploadToCloudinary(
+          finalBuffer,
+          `${Date.now()}-book`
+        );
+
+        book.fileUrl = upload.secure_url + "?fl_attachment";
+        book.fileType = "file";
+        book.fileLink = null;
+      } finally {
+        await fs.unlink(tempPath).catch(() => {});
+      }
     }
 
-    /* ================= LINK ================= */
-
+    /* ---------- LINK ---------- */
     if (fileLink) {
       let url;
+
       try {
         url = new URL(fileLink.trim());
       } catch {
@@ -1133,7 +896,7 @@ export const updateBook = async (req, res) => {
       }
 
       if (url.protocol !== "https:") {
-        return res.status(400).json({ message: "HTTPS only" });
+        return res.status(400).json({ message: "Only HTTPS allowed" });
       }
 
       book.fileUrl = url.href;
