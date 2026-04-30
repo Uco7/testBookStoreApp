@@ -12,7 +12,6 @@
   "description": "",
   "dependencies": {
     "bcryptjs": "^3.0.3",
-    "clamscan": "^2.4.0",
     "cloudinary": "^2.9.0",
     "cors": "^2.8.5",
     "docx-pdf": "^0.0.1",
