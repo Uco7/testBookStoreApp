@@ -32,10 +32,16 @@
 // export default upload;
 
 
-
 import multer from "multer";
 
-const storage = multer.memoryStorage();
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  }
+});
 
 const allowedMimeTypes = [
   "application/pdf",
@@ -57,7 +63,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   limits: {
-    fileSize: 20 * 1024 * 1024
+    fileSize: 10 * 1024 * 1024 // recommend 10MB for Render stability
   },
   fileFilter
 });
