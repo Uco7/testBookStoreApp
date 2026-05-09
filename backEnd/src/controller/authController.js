@@ -4,6 +4,10 @@ import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/user.js";
+import dotenv from "dotenv";
+import { sendPushNotification } from "../services/pushNotification.js";
+
+dotenv.config();
 
 /* ---------- Helpers ---------- */
 const normalizeEmail = (email) => email?.toLowerCase().trim();
@@ -11,36 +15,43 @@ const sanitize = (str) => str?.replace(/[<>\/\\$;]/g, "").trim();
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)[^\s]{8,128}$/;
-
+const NAME_REGEX = /^[a-zA-Z\s.'-]{2,50}$/;
 /* ---------- Registration Step 1: Request OTP ---------- */
 export const requestRegisterOTP = async (req, res) => {
   try {
     const { username, fullName, email, password } = req.body;
-    console.log("OTP Request:", req.body);
-
+    
     if (!username || !fullName || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
-
+    
     const cleanUsername = sanitize(username);
     console.log("Cleaned Username:", cleanUsername);
     const cleanEmail = normalizeEmail(email);
     console.log("Cleaned Email:", cleanEmail);
-
-    if (!USERNAME_REGEX.test(cleanUsername)) {
+    
+    if (!USERNAME_REGEX.test(cleanUsername)||typeof cleanUsername!=="string"  ) {
       return res.status(400).json({ message: "Invalid username format" });
     }
-
+    if (!NAME_REGEX.test(sanitize(fullName))||typeof fullName!=="string") {
+      return res.status(400).json({ message: "Invalid full name format" });
+    }
+    
     if (!EMAIL_REGEX.test(cleanEmail)) {
       return res.status(400).json({ message: "Invalid email format" });
     }
-
+    
     if (!PASSWORD_REGEX.test(password)) {
       return res.status(400).json({ message: "Password too weak" });
     }
+    
+    
 
     const existing = await User.findOne({
-      $or: [{ email: cleanEmail }, { username: cleanUsername }],
+      $or: [
+        { email: cleanEmail },
+        { username: cleanUsername }
+      ]
     });
     console.log("Existing User Check:", existing);
       
@@ -76,7 +87,7 @@ export const requestRegisterOTP = async (req, res) => {
 
   } catch (err) {
     console.error("OTP Request Error:", err);
-    return res.status(500).json({ message: "Failed to send verification code" });
+    return res.status(500).json({ message: err.message });
   }
 };
 
@@ -91,7 +102,11 @@ export const verifyAndRegister = async (req, res) => {
     }
     const cleanEmail = normalizeEmail(email);
     console.log("Cleaned Email for Verification:", cleanEmail);
-
+if(!EMAIL_REGEX.test(cleanEmail)){
+            res.status(400).json({
+                message:"invalid email format"
+            })
+        }
     const user = await User.findOne({ email: cleanEmail });
     console.log("User Found for Verification:", user);
 
@@ -146,7 +161,7 @@ export const login = async (req, res) => {
 
     const query = EMAIL_REGEX.test(cleanIdentifier)
       ? { email: normalizeEmail(cleanIdentifier) }
-      : { username: cleanIdentifier };
+      : { username: sanitize(cleanIdentifier) };
 
     const user = await User.findOne(query).select("+password");
 
@@ -196,13 +211,13 @@ export const forgotPassword = async (req, res) => {
     if (!identifier) {
       return res.status(400).json({ message: "Email or username is required" });
     }
+     const cleanIdentifier = identifier?.trim();
 
-    const user = await User.findOne({
-      $or: [
-        { email:normalizeEmail(identifier) },
-        { username:sanitize(identifier) },
-      ],
-    });
+const query = EMAIL_REGEX.test(cleanIdentifier)
+      ? { email: normalizeEmail(cleanIdentifier) }
+      : { username: sanitize(cleanIdentifier) };
+    const user = await User.findOne(query);
+     
 
     if (!user) {
       return res.status(404).json({ message: "Account not found" });
@@ -277,5 +292,52 @@ export const resetPassword = async (req, res) => {
   } catch (err) {
     console.error("Reset Error:", err);
     res.status(500).json({ message: "Reset failed" });
+  }
+};
+
+
+export const savePushToken = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ message: "Token required" });
+    }
+
+    await User.findByIdAndUpdate(req.user.id, {
+      pushToken: token,
+    });
+
+    res.json({ message: "Push token saved" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+
+    export const sendTestNotification = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    console.log("User for Test Notification:", user.pushToken);
+
+    if (!user?.pushToken) {
+      return res.status(400).json({ message: "No push token found" });
+    }
+
+     const result = await sendPushNotification(
+      user.pushToken,
+      "📚 BookStore",
+      "This is a backend push notification 🚀",
+      {
+        type: "TEST",
+      }
+    );
+    console.log("Test Notification Result:", result);
+
+    res.json({ message: "Notification sent successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
   }
 };

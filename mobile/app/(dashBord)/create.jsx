@@ -21,6 +21,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../../constant/colors";
 import KeyBordAvoidingComponent from "../../component/KeyBordAvoidingComponent";
 import CardTheme from "../../component/CardTheme";
+import { validateBookInput } from "../../utils/bookValidator";
 
 export default function Create() {
   const [selectedType, setSelectedType] = useState("doc"); // default type
@@ -30,6 +31,7 @@ export default function Create() {
   const [file, setFile] = useState(null);
   const [fileLink, setFileLink] = useState("");
   const [status, setStatus] = useState("idle"); // idle | uploading | error
+  
 
   const { createBook } = useBook();
   const router = useRouter();
@@ -43,24 +45,26 @@ export default function Create() {
       setFileLink("");
     }, [])
   );
-
+    const cardTitle=()=>{
+      if(selectedType==="reading") return "Add Reading Material";
+      if(selectedType==="link") return "Add New Link";
+      return "Add Document";
+    }
   const pickFile = async () => {
     const result = await DocumentPicker.getDocumentAsync({
       type: "*/*",
       copyToCacheDirectory: true,
     });
     if (!result.canceled) setFile(result.assets[0]);
+    console.log("File picked:", result);
   };
 
   const handleSubmit = async () => {
-    if (!title || ((selectedType === "doc" || selectedType === "reading") && !file)) {
-      return Alert.alert("Error", "Title and File required for this type");
-    }
-    if ((selectedType === "doc" || selectedType === "reading") && !author) {
-      return Alert.alert("Error", "Author required for this type");
-    }
-    if (selectedType === "link" && !fileLink) {
-      return Alert.alert("Error", "Link required for this type");
+
+  
+    const validationError = validateBookInput({ title, author, description, file, fileLink, selectedType });
+    if (validationError) {
+      return Alert.alert("Validation Error", validationError);
     }
 if (status !== "idle") return; // Prevent double submission
     setStatus("saving...");
@@ -73,7 +77,7 @@ if (status !== "idle") return; // Prevent double submission
         fileLink: selectedType === "link" ? fileLink : undefined,
       });
 
-      if (!ok) throw new Error("Book creation failed");
+      if (!ok) throw new Error(" upload failed");
       setStatus("saved");
       setTimeout(() => {
 
@@ -87,15 +91,24 @@ if (status !== "idle") return; // Prevent double submission
       }, 1500);
     } catch (err) {
       setStatus("idle");
-      Alert.alert("Upload Failed", err.message || "Try again");
+      Alert.alert( err.response?.data?.message || err.message || "An error occurred while saving the book");
     }
   };
 
   const renderButtonText = () => {
   if (status === "saving...") return "Saving...";
-  if (status === "saved") return "Saved🎉";
-  return "Save Book";
+  if (status === "saved") return "Upload complete 🎉";
+  return "Save ";
 };
+const shortenFileName = (name, maxLength = 20) => {
+  if(!name) return "";
+  if(name.length <= maxLength) return name;
+  const fileExt=name.split(".").pop();
+  const baseName=name.substring(0,maxLength-fileExt.length-4);
+  return `${baseName}...${fileExt}`;
+
+}
+
   return (
       <KeyBordAvoidingComponent>
          <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
@@ -110,7 +123,7 @@ if (status !== "idle") return; // Prevent double submission
           >
             <View style={styles.btnContent}>
               <Ionicons name="book-outline" size={16} color="#fff" />
-              <ThemeText style={styles.btnText}>Reading Book</ThemeText>
+              <ThemeText style={styles.btnText}>Reading Book/Docs</ThemeText>
             </View>
           </ThemeButton>
 
@@ -141,7 +154,10 @@ if (status !== "idle") return; // Prevent double submission
         <CardTheme style={styles.card}>
           <View style={styles.header}>
             <Ionicons name="arrow-back" size={22} color="#fff" onPress={() => router.back()} />
-            <ThemeText style={styles.headerTitle}>Add New Book</ThemeText>
+            <ThemeText style={styles.headerTitle}>
+              {cardTitle()}
+          
+           </ThemeText>
             <View style={{ width: 22 }} />
           </View>
 
@@ -155,7 +171,8 @@ if (status !== "idle") return; // Prevent double submission
           />
           <Spacer />
 
-          {(selectedType === "doc" || selectedType === "reading") && (
+
+          {(selectedType === "doc" || selectedType === "reading" ) && (
             <>
               <InputTheme
                 placeholder="Author Name(owner name)"
@@ -175,7 +192,7 @@ if (status !== "idle") return; // Prevent double submission
                 onPress={pickFile}
                 style={{ width: "80%", marginLeft: "auto", marginRight: "auto" }}
               >
-                <ThemeText style={{color:"#fff"}}>{file ? file.name : "Pick File"}</ThemeText>
+                <ThemeText style={{color:"#fff"}}>{file ?shortenFileName(file.name) : "Pick File"}</ThemeText>
               </ThemeButton>
             </>
           )}

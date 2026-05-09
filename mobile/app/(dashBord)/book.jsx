@@ -20,37 +20,91 @@ import { useBook } from "../../hook/useBook";
 import { Ionicons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system/legacy";
 import { useRouter } from "expo-router";
-import * as Linking from "expo-linking";
+import { Menu, Divider } from "react-native-paper";
+// import * as Linking from "expo-linking";
+import { Linking } from "react-native";
 import InputTheme from "../../component/InputTheme";
 import RowItemsTheme from "../../component/RowItemsTheme";
 import CardTheme from "../../component/CardTheme";
 import { useUser } from "../../hook/useUser";
 import { ActivityIndicator } from "react-native";
 
+
+
 export default function Book() {
   const { books, fetchBooks, deleteBook, } = useBook();
   const {authReady}=useUser()
   const router = useRouter();
-
+const [bookLoading, setBookLoading] = useState(false);
   const [selectedType, setSelectedType] = useState("All");
   const [search, setSearch] = useState("");
+const [visibleMenuId, setVisibleMenuId] = useState(null);
+
+const openMenu = (id) => setVisibleMenuId(id);
+const closeMenu = () => setVisibleMenuId(null);
+
 useEffect(() => {
-  if (authReady) {
-    fetchBooks();
-  }
-}, [authReady]);
-   if (!authReady) {
-    return (
-      <ThemeView style={styles.centered}>
-        {/* <ThemeText>Loading...</ThemeText> */}
-        <ActivityIndicator
-        size={20}
-        color="#4f46e5"
-        />
-      </ThemeView>
-    );
+  const loadBooks = async () => {
+    try {
+      if (!authReady) return;
+      setBookLoading(true);
+      await fetchBooks();
+      
+    } catch (error) {
+      
+      console.log("Error loading books:", error);
+    }finally {
+      setBookLoading(false);
+    }
   }
 
+  loadBooks();
+
+
+}, [authReady]);
+ const filteredBooks = useMemo(() => {
+    return books.filter((item) => {
+      if (selectedType === "link" && !item.fileLink) return false;
+      if (selectedType === "doc" && !item.fileUrl) return false;
+
+      const q = search.toLowerCase();
+      const formateDate=item.createdAt?new Date(item.createdAt).toLocaleString().toLowerCase():""
+      return (
+        item.title?.toLowerCase().includes(q) ||
+        item.author?.toLowerCase().includes(q) ||
+        item.description?.toLowerCase().includes(q) ||
+        (item.fileLink && item.fileLink.toLowerCase().includes(q)) ||
+        (item.fileUrl && item.fileUrl.toLowerCase().includes(q)) ||
+        (formateDate && formateDate.includes(q))
+        
+
+        
+      );
+    });
+  }, [books, selectedType, search]);
+
+if (!authReady || bookLoading) {
+  return (
+    <ThemeView
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <ActivityIndicator
+        size="large"
+        color={colors.primary}
+      />
+
+      <ThemeText style={{ marginTop: 10 }}>
+        Loading books...
+      </ThemeText>
+    </ThemeView>
+  );
+}
+
+ 
 
   const getMimeType = (filename) => {
     const ext = filename.split(".").pop().toLowerCase();
@@ -67,66 +121,50 @@ useEffect(() => {
     }
   };
 
-  // const openFile = async (book) => {
-  //   try {
-  //     if (!book.fileUrl) {
-  //       Alert.alert("No file", "This book has no file");
-  //       return;
-  //     }
 
-  //     console.log("Opening URL:", book.fileUrl);
 
-  //     const filename = book.fileUrl.split("/").pop();
-  //     console.log("Extracted filename:", filename);
-  //     const localUri = FileSystem.documentDirectory + filename;
-  //     console.log("Local URI for download:", localUri);
-
-  //     const downloadResult = await FileSystem.downloadAsync(
-  //       book.fileUrl,
-  //       localUri
-  //     );
-
-  //     console.log("Download result:", downloadResult);
-
-  //     const fileInfo = await FileSystem.getInfoAsync(downloadResult.uri);
-
-  //     console.log("File info:", fileInfo);
-
-  //     // 🔴 CRITICAL CHECK
-  //     if (!fileInfo.exists || fileInfo.size < 1000) {
-  //       throw new Error("Downloaded file is invalid (likely HTML error page)");
-  //     }
-
-  //     router.push({
-  //       pathname: "/pdf-viewer",
-  //       params: {
-  //         url: downloadResult.uri,
-  //         title: book.title,
-  //       },
-  //     });
-  //   } catch (error) {
-  //     console.log("OPEN FILE ERROR:", error);
-  //     Alert.alert("Error", "Failed to open file. Check backend URL.");
-  //   }
-  // };
 
 const openFile = async (book) => {
   try {
-    if (book.fileLink) {
-      const supported = await Linking.canOpenURL(book.fileLink);
-      if (supported) await Linking.openURL(book.fileLink);
+
+    // =========================
+    // OPEN EXTERNAL LINK
+    // =========================
+    if (book.fileType === "link") {
+
+      const url = book.fileUrl || book.fileLink;
+
+      if (!url) {
+        return Alert.alert("Error", "No link available");
+      }
+
+      const supported = await Linking.canOpenURL(url);
+
+      if (!supported) {
+        return Alert.alert("Error", "Cannot open this link");
+      }
+
+      await Linking.openURL(url);
       return;
     }
 
-    if (book.fileUrl) {
+    // =========================
+    // OPEN PDF/DOCUMENT
+    // =========================
+    if (book.fileType === "file") {
+
+      if (!book.fileUrl) {
+        return Alert.alert("Error", "No file available");
+      }
+
       console.log("Opening file URL:", book.fileUrl);
 
       const cleanUrl = book.fileUrl.split("?")[0];
+
       let filename = cleanUrl.split("/").pop();
 
-      // 🔥 FIX: ensure .pdf extension
       if (!filename.endsWith(".pdf")) {
-        filename = filename + ".pdf";
+        filename += ".pdf";
       }
 
       const localUri = FileSystem.documentDirectory + filename;
@@ -155,13 +193,13 @@ const openFile = async (book) => {
       return;
     }
 
-    Alert.alert("Error", "No file or link available");
+    Alert.alert("Error", "Unsupported content type");
+
   } catch (error) {
     console.log("OPEN ERROR:", error);
     Alert.alert("Error", "Failed to open content");
   }
 };
-
     
   const handleDelete = (bookId) => {
     Alert.alert("Delete Book", "Are you sure?", [
@@ -169,6 +207,7 @@ const openFile = async (book) => {
       { text: "Delete", style: "destructive", onPress: () => deleteBook(bookId) },
     ]);
   };
+
 const handleShare = async (book) => {
     try {
       const shareUrl = book.fileUrl || book.fileLink;
@@ -177,8 +216,18 @@ const handleShare = async (book) => {
         return;
       }
 
+      if(book.fileType==="link"){
+        console.log("Sharing external link:", shareUrl);
+        await Share.share({
+        message: ` ${book.title} \n${shareUrl}`,
+        url: shareUrl, // iOS supports URL separately
+        title: book.title,
+      });
+      return;
+
+      }
       await Share.share({
-        message: `Check out this book: ${book.title} by ${book.author}\n${shareUrl}`,
+        message: `Download Now:🗂️ ${book.title} by ${book.author}\n${shareUrl}`,
         url: shareUrl, // iOS supports URL separately
         title: book.title,
       });
@@ -186,6 +235,7 @@ const handleShare = async (book) => {
       Alert.alert("Error", error.message);
     }
   };
+  
 
   const handleUpdate = (book) => {
     router.push({
@@ -195,35 +245,89 @@ const handleShare = async (book) => {
   };
 
  
-   const filteredBooks = useMemo(() => {
-    return books.filter((item) => {
-      if (selectedType === "link" && !item.fileLink) return false;
-      if (selectedType === "doc" && !item.fileUrl) return false;
-
-      const q = search.toLowerCase();
-      return (
-        item.title?.toLowerCase().includes(q) ||
-        item.author?.toLowerCase().includes(q) ||
-        item.description?.toLowerCase().includes(q)
-      );
-    });
-  }, [books, selectedType, search]);
+  
 
   const renderItem = ({ item }) => (
     <CardTheme style={styles.card}>
          {/* --- ADDED SHARE BUTTON --- */}
-         <RowItemsTheme style={{ justifyContent: "flex-end", marginBottom: 8 ,marginHorizontal:12}}>
+         {/* <RowItemsTheme style={{ justifyContent: "flex-end", marginBottom: 8 ,marginHorizontal:12}}> */}
 
-        <Pressable onPress={() => handleShare(item)} style={styles.iconButton}>
+
+        {/* <Pressable onPress={() => handleShare(item)} style={styles.iconButton}>
           <Ionicons name="share-social-outline" size={20} color={colors.primary} />
           <ThemeText style={[styles.iconText, { fontSize: 10 }]}>Share</ThemeText>
-        </Pressable>
+        </Pressable> */}
         {/* ------------------------- */}
-         </RowItemsTheme>
+         {/* </RowItemsTheme> */}
+         <RowItemsTheme
+  style={{
+    justifyContent: "flex-end",
+    marginBottom: 8,
+    marginHorizontal: 12,
+  }}
+>
+  <Menu
+    visible={visibleMenuId === item._id}
+    onDismiss={closeMenu}
+    anchor={
+      <Pressable onPress={() => openMenu(item._id)}>
+        <Ionicons
+          name="ellipsis-vertical"
+          size={22}
+          color={colors.primary}
+        />
+      </Pressable>
+    }
+  >
+    <Menu.Item
+      onPress={() => {
+        closeMenu();
+        handleShare(item);
+      }}
+      title="Share"
+      leadingIcon="share-variant"
+    />
+
+    <Menu.Item
+      onPress={() => {
+        closeMenu();
+        handleUpdate(item);
+      }}
+      title="Update"
+      leadingIcon="pencil"
+    />
+
+    <Divider />
+
+    <Menu.Item
+      onPress={() => {
+        closeMenu();
+        handleDelete(item._id);
+      }}
+      title="Set Reminder"
+      leadingIcon="calendar-outline"
+      titleStyle={{ color: "red" }}
+    />
+    <Menu.Item
+      onPress={() => {
+        closeMenu();
+        handleDelete(item._id);
+      }}
+      title="Delete"
+      leadingIcon="delete"
+      titleStyle={{ color: "red" }}
+    />
+  </Menu>
+</RowItemsTheme>
+
+
       <ThemeText style={styles.title}>Title: {item.title}</ThemeText>
-      <ThemeText style={styles.author}>Author: {item.author}</ThemeText>
+      <ThemeText style={styles.author}>{item.author? `Author: ${item.author}`: "No author specified"}</ThemeText>
       <ThemeText style={styles.desc}>
         Description: {item.description || "No description"}
+      </ThemeText>
+      <ThemeText style={{fontSize: 10, marginTop: 4, color: "#555", fontStyle: "italic"}}>
+        Date: {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "N/A"}
       </ThemeText>
 
       <Spacer />
@@ -234,16 +338,18 @@ const handleShare = async (book) => {
           <ThemeText style={styles.iconText}>Open</ThemeText>
         </Pressable>
 
-        <Pressable onPress={() => handleUpdate(item)} style={styles.iconButton}>
+        {/* <Pressable onPress={() => handleUpdate(item)} style={styles.iconButton}>
           <Ionicons name="create-outline" size={24} color={colors.primary} />
           <ThemeText style={styles.iconText}>Update</ThemeText>
         </Pressable>
+          */}
+         <Spacer width={50} />
      
 
         <Pressable onPress={() => handleDelete(item._id)} style={styles.iconButton}>
-          <Ionicons name="trash-outline" size={24} color="#FF4B5C" />
-          <ThemeText style={styles.iconText}>Delete</ThemeText>
-        </Pressable>
+          <Ionicons name="alarm-outline" size={24} color={colors.primary} />
+          <ThemeText style={styles.iconText}>Remind</ThemeText>
+        </Pressable> 
       </RowItemsTheme>
     </CardTheme>
   );
@@ -255,12 +361,15 @@ const handleShare = async (book) => {
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="#888" />
         <InputTheme
-          placeholder="Search..."
+          placeholder="Search by title, author, Date, link, or description"
           placeholderTextColor="#888"
           style={styles.searchInput}
           value={search}
           onChangeText={setSearch}
         />
+      {/* <ThemeText style={{ color: "#aaa", fontSize: 12 }}>
+        (Search by title, author, description, link, or date)
+      </ThemeText> */}
       </View>
 
       <RowItemsTheme style={styles.row}>
@@ -323,14 +432,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     height: 50,
     marginBottom: 12,
+    width: "80%",
+    alignSelf: "center",
+
   },
-  searchInput: { flex: 1,  marginLeft: 10 },
+  searchInput: { flex: 1,  marginLeft: 2,
+    
+   },
 
    row: {
     width: "90%",
-    // flexDirection: "row",
-    // gap: 10,
-    // // overflow: "hidden",
+   
     marginVertical: 10,
     marginHorizontal: 20,
     

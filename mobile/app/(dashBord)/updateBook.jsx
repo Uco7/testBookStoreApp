@@ -1,7 +1,7 @@
 
 
 
-import React, { useState } from "react";
+import React, { use, useCallback, useEffect, useState } from "react";
 import { View, Alert, StyleSheet, TouchableWithoutFeedback, Keyboard } from "react-native";
 import ThemeView from "../../component/ThemeView";
 import ThemeText from "../../component/ThemeText";
@@ -10,9 +10,10 @@ import Spacer from "../../component/Spacer";
 import InputTheme from "../../component/InputTheme";
 import * as DocumentPicker from "expo-document-picker";
 import { useBook } from "../../hook/useBook";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import CardTheme from "../../component/CardTheme";
+import { validateBookInput } from "../../utils/bookValidator";
 
 export default function UpdateBook() {
   const router = useRouter();
@@ -27,21 +28,46 @@ export default function UpdateBook() {
   const [author, setAuthor] = useState(book.author|| "");
   const [description, setDescription] = useState(book.description || "");
   const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(""); // for success messages
 
+  useFocusEffect(
+    useCallback(()=>{
+      setLoading(false);
+      setMessage("");
+     
+    },[])
+  )
   const pickFile = async () => {
     const result = await DocumentPicker.getDocumentAsync({});
     if (!result.canceled) setFile(result.assets ? result.assets[0] : result);
   };
+  
 
   const handleSubmit = async () => {
-   if (!title.trim()) return Alert.alert("Validation", "Title is required");
+    setLoading(true);
+    setMessage("");
+
+  const validationError = validateBookInput({ title, author, description, file, fileLink });
+  if (validationError) {
+    setLoading(false);
+    
+    return Alert.alert("Validation", validationError);
+  }
 
   try {
     await updateBook(book._id, { title, author, description, file, fileLink });
-    Alert.alert("Success", " updated successfully");
-    router.replace("/book");
+    setLoading(false);
+    setMessage("update successful!");
+    setTimeout(() => {
+     
+      router.replace("/book");
+    }, 1500);
   } catch (err) {
-    Alert.alert("Error", err.response?.data?.message || err.message);
+    Alert.alert( err.response?.data?.message || err.message);
+    setLoading(false);
+    setMessage("");
+    
   }
   };
 
@@ -100,7 +126,9 @@ export default function UpdateBook() {
         </CardTheme>
           <Spacer height={16} />
           <ThemeButton onPress={handleSubmit} style={{ alignItems: "center" }}>
-            <ThemeText style={{color:"#fff"}}>Update Book</ThemeText>
+            <ThemeText style={{color:"#fff", fontSize: 14, fontWeight: "600" }}>
+              {loading ? "Updating..." : message ? message : "Update"}
+            </ThemeText>
           </ThemeButton>
 
       </ThemeView>

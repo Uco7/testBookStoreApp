@@ -1,10 +1,10 @@
 import { StyleSheet, Text, useColorScheme, View } from 'react-native'
 import React from 'react'
 import { colors } from '../constant/colors'
+import { ThemeContext,useTheme } from '../context/ThemeContext'
 
 const CardTheme = ({style,...prop}) => {
-    const colorScheme=useColorScheme()
-    const theme=colors[colorScheme]??colors.light
+    const {theme}=useTheme();
   return (
     <View style={[{backgroundColor:theme.uiBackground, borderWidth: 1, borderColor: theme.borderColor}, styles.card , style]}
     

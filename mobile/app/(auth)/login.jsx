@@ -88,25 +88,15 @@ export default function Login() {
       router.replace('/profile');
     } catch (err) {
       setAttempts((prev) => prev + 1);
-
-      let errorMessage = 'An unexpected error occurred.';
-
-      if (err.message === 'Network Error') {
-        errorMessage =
-          'Connection failed. Please check your internet or network status.';
-      } else if (err.response) {
-        errorMessage =
-          err.response.data?.message ||
-          err.response.data?.msg ||
-          'Login failed.';
-      } else if (err.request) {
-        errorMessage =
-          'Server is not responding. Please try again later.';
-      } else if (err.message) {
-        errorMessage = err.message;
+      if (attempts + 1 >= 5) {
+        setError('Too many failed attempts. Try again later.');
+        return;
       }
+     
 
-      setError(errorMessage);
+      
+
+      setError(err.message);
     } finally {
       setLoading(false);
     }

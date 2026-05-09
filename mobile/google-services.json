@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "238443774890",
+    "project_id": "bookstoreapp-1ec0a",
+    "storage_bucket": "bookstoreapp-1ec0a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:238443774890:android:0c8008979c727c8d7f61d3",
+        "android_client_info": {
+          "package_name": "com.ucmobileapk.bookstore"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8o7OOpTuzaAn0lgqFsKeq5LzlTM_czQo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

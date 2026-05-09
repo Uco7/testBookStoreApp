@@ -18,13 +18,13 @@ export const uploadLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: {
-    message: "Too many uploads, slow down"
+    message: "Too many uploads, slow down for 15 mins"
   }
 });
 
 // 🔐 Auth limiter (prevent brute force)
 export const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs: 1 * 60 * 1000,
   max: 5,
   standardHeaders: true,
   legacyHeaders: false,

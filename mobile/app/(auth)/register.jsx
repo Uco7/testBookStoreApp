@@ -37,10 +37,10 @@ function Register() {
 
   const validate = () => {
     if (!username || !fullName || !email || !password) return "All fields are required.";
-    if (!USERNAME_REGEX.test(username)) return "Invalid username.";
-    if (!NAME_REGEX.test(fullName)) return "Invalid full name.";
-    if (!EMAIL_REGEX.test(email)) return "Invalid email.";
-    if (!PASSWORD_REGEX.test(password)) return "Password must include letters and numbers.";
+    if (!USERNAME_REGEX.test(username)) return "Username must be 3–20 characters and can only contain letters, numbers, and underscores..";
+    if (!NAME_REGEX.test(fullName)) return "Full name must be 2–50 characters and can only contain letters, spaces, periods, and hyphens.";
+    if (!EMAIL_REGEX.test(email)) return "Enter a valid email address (e.g. example@gmail.com)";
+    if (!PASSWORD_REGEX.test(password)) return "Password must be 8–64 characters, include at least one letter and one number, and contain no spaces.";
     return null;
   };
 
@@ -65,7 +65,7 @@ function Register() {
       setStep(2);
       Keyboard.dismiss();
     } catch (err) {
-      setError(err.message || "Failed to send verification code");
+      setError(err.message );
     } finally {
       setLoading(false);
     }

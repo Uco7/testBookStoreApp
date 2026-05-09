@@ -5,11 +5,15 @@ import {
   login,
   getUser,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  sendTestNotification,
+  savePushToken
 } from "../controller/authController.js";
 import { authLimiter } from "../middleWare/limiter.js";
 
+
 import authMiddleware from "../middleWare/authMiddleWare.js";
+
 
 const router = express.Router();
 router.post("/register/request", authLimiter, requestRegisterOTP);
@@ -17,7 +21,17 @@ router.post("/register", authLimiter, verifyAndRegister);
 router.post("/login", authLimiter, login);
 router.get("/user", authMiddleware,authLimiter, getUser);
 
-
+router.post(
+  "/save-push-token",
+  authLimiter,
+  authMiddleware,
+  savePushToken
+);
+router.post(
+  "/test-notification",
+  authMiddleware,
+  sendTestNotification
+);
 
 router.post("/forgot-password", authLimiter, forgotPassword)
 router.post("/reset-password", authLimiter, resetPassword)

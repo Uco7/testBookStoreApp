@@ -1,10 +1,12 @@
 import { StyleSheet, Text, useColorScheme, View } from 'react-native'
 import React from 'react'
 import { colors } from '../constant/colors'
+import { ThemeContext,useTheme } from '../context/ThemeContext'
 
 const RowItemsTheme = ({style,...prop}) => {
-    const colorScheme=useColorScheme()
-    const theme=colors[colorScheme]??colors.light
+       const {theme}=useTheme();
+       console.log("RowItemsTheme theme:", theme);
+
   return (
     <View
     style={[{backgroundColor:theme.uiBackground, borderColor:theme.rowBorder},styles.row,style]}

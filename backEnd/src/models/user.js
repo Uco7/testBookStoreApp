@@ -15,6 +15,10 @@ const userSchema = new mongoose.Schema({
   // These must be defined so Mongoose allows them to be saved
   resetPasswordOTP: { type: String },
   resetPasswordExpires: { type: Date },
+  pushToken: {
+  type: String,
+  default: null,
+}
 
 }, { timestamps: true });
 

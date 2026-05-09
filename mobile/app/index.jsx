@@ -12,12 +12,13 @@ import CardTheme from '../component/CardTheme';
 import RowItemsTheme from '../component/RowItemsTheme';
 import PressableComponent from '../component/PressableComponent';
 import { useAppUpdate } from '../hook/appUpdate.js'
+import { useTheme } from '../context/ThemeContext';
 
 const HomeScreen = () => {
     const { updateChecked } = useAppUpdate(); // 🔥 triggers update check
+    const { theme, toggleTheme } = useTheme(); // Access theme from context
 
-const scheme = useColorScheme();
-const theme = colors[scheme] ?? colors.light;
+
  
 const handleFeedback = () => {
   const email = "ucnodemailler@gmail.com";
@@ -60,18 +61,33 @@ const handleFeedback = () => {
       size={24}
       color={theme.iconColorFocused}
     />
-  </ThemeText>
-</Pressable>
-      </RowItemsTheme>
+      </ThemeText>
+   </Pressable>
+   <Pressable onPress={toggleTheme}>
+       <ThemeText style={styles.buttonText}>
+          <Ionicons
+           name={theme === colors.dark ? "moon" : "sunny"}
+          size={20}
+          color={theme.iconColorFocused}
+          />{" "}
+          {theme === colors.dark ? "Light " : "Dark "}
+      </ThemeText>
+     </Pressable>
+ </RowItemsTheme>
       <Spacer height={50} />
 
       {/* Top guidance */}
       
       {/* Card container */}
+      {/* <Spacer width={12} /> */}
+              
+              
+            
       <CardTheme style={styles.card}>
         <Image source={Logo} style={styles.logo} />
 
         <Spacer height={12} />
+        
 
         <ThemeText style={styles.title}>
           Welcome to your Library
@@ -93,6 +109,7 @@ const handleFeedback = () => {
               <ThemeText style={styles.buttonText}>Register</ThemeText>
             </PressableComponent>
           </Link>
+      
 
           <Link href="/login" asChild>
             <PressableComponent style={styles.button}>
@@ -116,6 +133,24 @@ const handleFeedback = () => {
               <ThemeText style={styles.buttonText}>My Library</ThemeText>
             </PressableComponent>
           </Link>
+          
+              
+        </RowItemsTheme>
+        <Spacer height={12} />
+        <RowItemsTheme >
+          <Link href="/" asChild>
+            <PressableComponent style={styles.button}>
+              <ThemeText style={styles.buttonText}>Subscribe</ThemeText>
+            </PressableComponent>
+          </Link>
+
+          <Link href="/" asChild>
+            <PressableComponent style={styles.button}>
+              <ThemeText style={styles.buttonText}>premium User</ThemeText>
+            </PressableComponent>
+          </Link>
+          
+              
         </RowItemsTheme>
       </CardTheme>
       <Spacer/>
@@ -156,13 +191,12 @@ const styles = StyleSheet.create({
   },
   card: {
     
-    // paddingVertical: 30,
-    // paddingHorizontal: 20,
-    // borderRadius: 24,
-    // // backgroundColor: "rgba(255,255,255,0.05)",
-    // // backgroundColor: colors.background,
-    // borderWidth: 1,
-    // borderColor: "rgba(255,255,255,0.15)",
+  width: "100%",
+    paddingVertical: 30,
+    paddingHorizontal: 20,
+    borderRadius: 26,
+    // backgroundColor: "rgba(255,255,255,0.05)",
+    // backgroundColor: "",
     alignItems: "center",
   },
   logo: {
@@ -172,7 +206,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   title: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: "600",
     textAlign: "center",
     // color: "#fff",
@@ -193,12 +227,14 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 14,
     borderWidth: 1,
+    fontSize:2,
+    fontWeight:"200",
     borderColor: "rgba(65, 62, 62, 0.2)",
     // backgroundColor: "rgba(255,255,255,0.07)",
     alignItems: "center",
   },
   buttonText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "500",
     // color: "#fff",
   },
