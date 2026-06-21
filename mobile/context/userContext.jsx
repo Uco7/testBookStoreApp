@@ -2,14 +2,15 @@
 
 import { createContext, useEffect, useRef, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
-import { getExpoPushToken } from "../utils/pushTokenService";
-import { syncPushToken } from "../utils/syncPushToken";
 import {backendUrl_ngrok,backendDomainUrl} from "../utils/config/appUrl"
+import { syncPushToken } from "../utils/syncPushToken";
 
-// const APPURL=backendUrl_ngrok
-const APPURL=backendDomainUrl
 
+import axios from "axios";
+
+// const APP_URL ="https://0e22-102-90-96-16.ngrok-free.app";
+const APPURL =backendUrl_ngrok;
+// const APP_URL ="https://testbookstoreapp-backend-my8t.onrender.com";
 const API_TIMEOUT = 10000;
 
 export const UserContext = createContext();
@@ -74,68 +75,141 @@ export function UserProvider({ children }) {
 
   /* ---------- LOGIN ---------- */
 
+   /* ---------- LOGIN ---------- */
+
   const getErrorMessage = (err) => {
-  if (!err) return "Something went wrong";
+    if (!err) return "Something went wrong";
 
-  if (err.message === "Network Error") {
-    return "Connection failed. Please check your internet.";
-  }
-
-  if (err.response) {
-    return (
-      err.response.data?.message ||
-      err.response.data?.msg ||
-      "Request failed"
-    );
-  }
-
-  if (err.request) {
-    return "Server not responding. Try again later.";
-  }
-
-  return "Something went wrong";
-};
-
-async function login(identifier, password) {
-  try {
-    const res = await api.post("/api/v1/auth/login", {
-      identifier,
-      password,
-    });
-
-    const authToken = res.data.token;
-
-    await AsyncStorage.setItem("token", authToken);
-
-    // ✔ STEP 1: FETCH USER FIRST
-    await fetchUser();
-
-    // ✔ STEP 2: PUSH TOKEN (SAFE + SEPARATE)
-    const pushToken = await getExpoPushToken();
-
-    console.log("Push Token:", pushToken);
-
-    if (pushToken) {
-      await syncPushToken(pushToken);
+    if (err.message === "Network Error") {
+      return "Connection failed. Please check your internet.";
     }
 
-    // ✔ STEP 3: OPTIONAL TEST (ONLY DEV MODE)
-    if (__DEV__) {
-      await api.post(
-        "/api/v1/auth/test-notification",
-        {},
-        {
-          headers: { Authorization: `Bearer ${authToken}` },
-        }
+    if (err.response) {
+      return (
+        err.response.data?.message ||
+        err.response.data?.msg ||
+        "Request failed"
       );
     }
 
-  } catch (err) {
-  const message = getErrorMessage(err);
-  console.log("Login Error:", message);
-  throw new Error(message);
-}
-}
+    if (err.request) {
+      return "Server not responding. Try again later.";
+    }
+
+    return "Something went wrong";
+  };
+
+  async function login(identifier, password) {
+    try {
+      const res = await api.post("/api/v1/auth/login", {
+        identifier,
+        password,
+      });
+
+      const authToken = res.data.token;
+
+      await AsyncStorage.setItem("token", authToken);
+
+      // ✔ STEP 1: FETCH USER FIRST
+      await fetchUser();
+
+      // ✔ STEP 2: PUSH TOKEN (SAFE + SEPARATE — never blocks login)
+      try {
+        const pushToken = await registerForPushNotificationsAsync();
+        console.log("Push Token:", pushToken);
+
+        if (pushToken) {
+          await syncPushToken(pushToken);
+        }
+      } catch (pushErr) {
+        console.log("Push registration skipped:", pushErr.message);
+      }
+
+      // ✔ STEP 3: OPTIONAL TEST (ONLY DEV MODE)
+      if (__DEV__) {
+        try {
+          await api.post(
+            "/api/v1/auth/test-notification",
+            {},
+            {
+              headers: { Authorization: `Bearer ${authToken}` },
+            }
+          );
+        } catch (testErr) {
+          console.log("Test notification skipped:", testErr.message);
+        }
+      }
+
+    } catch (err) {
+      const message = getErrorMessage(err);
+      console.log("Login Error:", message);
+      throw new Error(message);
+    }
+  }
+
+
+//   const getErrorMessage = (err) => {
+//   if (!err) return "Something went wrong";
+
+//   if (err.message === "Network Error") {
+//     return "Connection failed. Please check your internet.";
+//   }
+
+//   if (err.response) {
+//     return (
+//       err.response.data?.message ||
+//       err.response.data?.msg ||
+//       "Request failed"
+//     );
+//   }
+
+//   if (err.request) {
+//     return "Server not responding. Try again later.";
+//   }
+
+//   return "Something went wrong";
+// };
+
+// async function login(identifier, password) {
+//   try {
+//     const res = await api.post("/api/v1/auth/login", {
+//       identifier,
+//       password,
+//     });
+
+//     const authToken = res.data.token;
+
+//     await AsyncStorage.setItem("token", authToken);
+
+//     // ✔ STEP 1: FETCH USER FIRST
+//     await fetchUser();
+
+//     // ✔ STEP 2: PUSH TOKEN (SAFE + SEPARATE)
+//     const pushToken = await getExpoPushToken();
+
+//     console.log("Push Token:", pushToken);
+
+//     if (pushToken) {
+//       await syncPushToken(pushToken);
+//     }
+
+//     // ✔ STEP 3: OPTIONAL TEST (ONLY DEV MODE)
+//     if (__DEV__) {
+//       await api.post(
+//         "/api/v1/auth/test-notification",
+//         {},
+//         {
+//           headers: { Authorization: `Bearer ${authToken}` },
+//         }
+//       );
+//     }
+
+//   } catch (err) {
+//   const message = getErrorMessage(err);
+//   console.log("Login Error:", message);
+//   throw new Error(message);
+// }
+// }
 
   async function logOut()  {
       try {

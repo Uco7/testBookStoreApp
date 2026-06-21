@@ -5,14 +5,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 // import { Alert } from "react-native";
 import { useRouter } from "expo-router";
-
-import { Platform, Alert } from "react-native";
 import {backendUrl_ngrok,backendDomainUrl} from "../utils/config/appUrl"
 
-// const APPURl =backendUrl_ngrok\
-const APPURl=backendDomainUrl
 
-
+// Base URL
+const APPURl =backendUrl_ngrok;
+// const APPURl ="https://testbookstoreapp-backend-my8t.onrender.com";
 
 export const BookContext = createContext();
 

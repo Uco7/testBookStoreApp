@@ -436,7 +436,7 @@ import axios from "axios";
 import { backendUrl_ngrok,backendDomainUrl } from "../utils/config/appUrl";
 
 // const APP_URL = backendUrl_ngrok;
-const APP_URL = backendDomainUrl;
+const APP_URL = backendUrl_ngrok
 
 export const SubscriptionContext = createContext(null);
 

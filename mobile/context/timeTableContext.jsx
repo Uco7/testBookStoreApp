@@ -18,7 +18,7 @@ import {backendUrl_ngrok,backendDomainUrl} from "../utils/config/appUrl"
 
 // const APPURL=backendUrl_ngrok
 
-const APPURL=backendDomainUrl
+const APPURL=backendUrl_ngrok
 
 
 // ─────────────────────────────────────────────────────────────────────────────
