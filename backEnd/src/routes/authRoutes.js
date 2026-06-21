@@ -7,7 +7,8 @@ import {
   forgotPassword,
   resetPassword,
   sendTestNotification,
-  savePushToken
+  savePushToken,
+  logout
 } from "../controller/authController.js";
 import { authLimiter } from "../middleWare/limiter.js";
 
@@ -19,6 +20,7 @@ const router = express.Router();
 router.post("/register/request", authLimiter, requestRegisterOTP);
 router.post("/register", authLimiter, verifyAndRegister);
 router.post("/login", authLimiter, login);
+router.post("/logout", authMiddleware, logout);
 router.get("/user", authMiddleware,authLimiter, getUser);
 
 router.post(

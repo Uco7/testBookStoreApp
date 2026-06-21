@@ -5,7 +5,6 @@ import { ThemeContext,useTheme } from '../context/ThemeContext'
 
 const RowItemsTheme = ({style,...prop}) => {
        const {theme}=useTheme();
-       console.log("RowItemsTheme theme:", theme);
 
   return (
     <View

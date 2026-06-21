@@ -1,48 +1,65 @@
+
+
+
+
 import React from "react";
-import { View, StyleSheet, Image, Dimensions, Text } from "react-native";
+import { View, StyleSheet, Dimensions, Text } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import Pdf from "react-native-pdf";
+import { BannerAdComponent } from "../../component/AdsManager";
 
-export default function ViewFile() {
+export default function PdfViewer() {
   const { url, title } = useLocalSearchParams();
 
-  const isPdf = url?.toLowerCase().endsWith(".pdf");
+  if (!url) {
+    return (
+      <View style={styles.center}>
+        <Text>No file provided</Text>
+      </View>
+    );
+  }
+
+  const source = {
+    uri: url,
+    cache: true,
+  };
 
   return (
     <View style={styles.container}>
-      {isPdf ? (
-        <Pdf
-          source={{ uri: url, cache: true }}
-          style={styles.content}
-          onError={(err) => console.log("PDF error:", err)}
-        />
-      ) : url?.match(/\.(jpg|jpeg|png|gif)$/i) ? (
-        <Image
-          source={{ uri: url }}
-          style={styles.content}
-          resizeMode="contain"
-        />
-      ) : (
-        <View style={styles.fallback}>
-          <Text style={{ color: "white" }}>Preview not supported</Text>
-          <Text style={{ color: "gray" }}>{url}</Text>
-        </View>
-      )}
+      <Pdf
+        source={source}
+        style={styles.pdf}
+        onError={(err) => console.log("PDF ERROR:", err)}
+      />
+      <View style={styles.bannerContainer}>
+
+      <BannerAdComponent  />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#000" },
-
-  content: {
+  pdf: {
     flex: 1,
     width: Dimensions.get("window").width,
   },
-
-  fallback: {
+  center: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
+  bannerContainer: {
+  position: "absolute",
+  bottom: 0,
+  left: 0,
+  right: 0,
+  alignItems: "center",
+  justifyContent: "center",
+  paddingBottom: 5,
+
+  // optional styling
+  backgroundColor: "transparent",
+},
 });

@@ -1,194 +1,3 @@
-// // {
-// //   "expo": {
-// //     "name": "BookStore",
-// //     "slug": "bookstore",
-// //     "version": "1.0.0",
-// //     "orientation": "portrait",
-// //     "scheme": "bookstore",
-// //     "icon": "./assets/logo.jpeg",
-// //     "userInterfaceStyle": "light",
-// //     "newArchEnabled": true,
-// //     "splash": {
-// //       "image": "./assets/logo.jpeg",
-// //       "resizeMode": "contain",
-// //       "backgroundColor": "#ffffff"
-// //     },
-// //     "ios": {
-// //       "supportsTablet": true
-// //     },
-// //     "android": {
-// //       "adaptiveIcon": {
-// //         "foregroundImage": "./assets/logo.jpeg",
-// //         "backgroundColor": "#ffffff"
-// //       },
-// //       "edgeToEdgeEnabled": false,
-// //       "package": "com.ucmobileapk.bookstore"
-// //     },
-// //     "plugins": [
-// //       "expo-router",
-// //       [
-// //         "expo-navigation-bar",
-// //         {
-// //           "backgroundColor": "#0f172a",
-// //           "barStyle": "light",
-// //           "borderColor": "#1f2937",
-// //           "visibility": "visible",
-// //           "behavior": "inset-swipe",
-// //           "position": "relative"
-// //         }
-// //       ]
-// //     ],
-// //     "extra": {
-// //       "router": {},
-// //       "eas": {
-// //         "projectId": "b5d2bc8a-2cf0-43e8-af7f-1dd462a7d389"
-// //       }
-// //     },
-// //     "owner": "ucmobileapk",
-// //     "assetBundlePatterns": ["**/*"],
-// //     "runtimeVersion": {
-// //       "policy": "appVersion"
-// //     },
-// //     "updates": {
-// //       "url": "https://u.expo.dev/b5d2bc8a-2cf0-43e8-af7f-1dd462a7d389"
-// //     },
-// //     "platforms": ["ios", "android"]
-// //   }
-// // }
-
-
-
-// // {
-// //   "expo": {
-// //     "name": "BookStore",
-// //     "slug": "bookstore",
-// //     "version": "1.0.1",                // Semantic version
-// //     "runtimeVersion": {
-// //       "policy": "appVersion"           // ✅ This tells Expo OTA to track version
-// //     },
-// //     "orientation": "portrait",
-// //     "scheme": "bookstore",
-// //     "icon": "./assets/logo.jpeg",
-// //     "userInterfaceStyle": "light",
-// //     "newArchEnabled": true,
-// //     "splash": {
-// //       "image": "./assets/logo.jpeg",
-// //       "resizeMode": "contain",
-// //       "backgroundColor": "#ffffff"
-// //     },
-// //     "ios": {
-// //       "supportsTablet": true
-// //     },
-// //     "android": {
-// //       "adaptiveIcon": {
-// //         "foregroundImage": "./assets/logo.jpeg",
-// //         "backgroundColor": "#ffffff"
-// //       },
-// //       "edgeToEdgeEnabled": false,
-// //       "package": "com.ucmobileapk.bookstore"
-// //     },
-// //     "plugins": [
-// //       "expo-router",
-// //       [
-// //         "expo-navigation-bar",
-// //         {
-// //           "backgroundColor": "#0f172a",
-// //           "barStyle": "light",
-// //           "borderColor": "#1f2937",
-// //           "visibility": "visible",
-// //           "behavior": "inset-swipe",
-// //           "position": "relative"
-// //         }
-// //       ]
-// //     ],
-// //     "extra": {
-// //       "router": {},
-// //       "eas": {
-// //         "projectId": "b5d2bc8a-2cf0-43e8-af7f-1dd462a7d389"
-// //       }
-// //     },
-// //     "owner": "ucmobileapk",
-// //     "assetBundlePatterns": ["**/*"],
-// //     "updates": {
-// //       "url": "https://u.expo.dev/b5d2bc8a-2cf0-43e8-af7f-1dd462a7d389"
-// //     },
-// //     "platforms": ["ios", "android"]
-// //   }
-// // }
-
-
-////////////////////////////////////////
-// {
-//   "expo": {
-//     "name": "BookStore",
-//     "slug": "bookstore",
-//     "version": "1.0.1",
-
-//     "runtimeVersion": {
-//       "policy": "appVersion"
-//     },
-
-//     "orientation": "portrait",
-//     "scheme": "bookstore",
-//     "icon": "./assets/logo.jpeg",
-//     "userInterfaceStyle": "light",
-//     "newArchEnabled": true,
-
-//     "splash": {
-//       "image": "./assets/logo.jpeg",
-//       "resizeMode": "contain",
-//       "backgroundColor": "#ffffff"
-//     },
-
-//     "ios": {
-//       "supportsTablet": true,
-//       "buildNumber": "2"
-//     },
-
-//     "android": {
-//       "package": "com.ucmobileapk.bookstore",
-//       "versionCode": 2,
-//       "adaptiveIcon": {
-//         "foregroundImage": "./assets/logo.jpeg",
-//         "backgroundColor": "#ffffff"
-//       },
-//       "edgeToEdgeEnabled": false
-//     },
-
-//     "plugins": [
-//       "expo-router",
-//       [
-//         "expo-navigation-bar",
-//         {
-//           "backgroundColor": "#0f172a",
-//           "barStyle": "light",
-//           "borderColor": "#1f2937",
-//           "visibility": "visible",
-//           "behavior": "inset-swipe",
-//           "position": "relative"
-//         }
-//       ]
-//     ],
-
-//     "updates": {
-//       "url": "https://u.expo.dev/b5d2bc8a-2cf0-43e8-af7f-1dd462a7d389"
-//     },
-
-//     "assetBundlePatterns": ["**/*"],
-
-//     "extra": {
-//       "router": {},
-//       "eas": {
-//         "projectId": "b5d2bc8a-2cf0-43e8-af7f-1dd462a7d389"
-//       }
-//     },
-
-//     "owner": "ucmobileapk",
-//     "platforms": ["ios", "android"]
-//   }
-// }
-
-
 // {
 //   "expo": {
 //     "name": "BookStore",
@@ -209,20 +18,52 @@
 //     },
 //     "ios": {
 //       "supportsTablet": true,
-//       "buildNumber": "2"
+//       "buildNumber": "2",
+//       "infoPlist": {
+//         "UIBackgroundModes": [
+//           "audio",
+//           "fetch",
+//           "remote-notification"
+//         ]
+//       }
 //     },
 //     "android": {
 //       "package": "com.ucmobileapk.bookstore",
-//       "versionCode": 2,
+//       "versionCode": 4,
+//       "googleServicesFile": "./google-services.json",
+//       "permissions": [
+//         "RECEIVE_BOOT_COMPLETED",
+//         "VIBRATE",
+//         "POST_NOTIFICATIONS",
+//         "android.permission.RECORD_AUDIO",
+//         "android.permission.MODIFY_AUDIO_SETTINGS"
+//       ],
 //       "adaptiveIcon": {
 //         "foregroundImage": "./assets/logo.jpeg",
 //         "backgroundColor": "#ffffff"
-//       },
-//       "edgeToEdgeEnabled": false
+//       }
 //     },
 //     "plugins": [
 //       "expo-router",
 //       "expo-dev-client",
+//       [
+//         "react-native-google-mobile-ads",
+//         {
+//           "androidAppId": "ca-app-pub-8923799920726415~8937259118",
+//               "iosAppId": "ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX"
+
+//         }
+//       ],
+//       [
+//         "expo-notifications",
+//         {
+//           "icon": "./assets/logo.jpeg",
+//           "color": "#ffffff",
+//           "sounds": [
+//             "./assets/alarm_sound.wav"
+//           ]
+//         }
+//       ],
 //       [
 //         "expo-navigation-bar",
 //         {
@@ -233,77 +74,131 @@
 //           "behavior": "inset-swipe",
 //           "position": "relative"
 //         }
+//       ],
+//       "@react-native-community/datetimepicker",
+//       "expo-audio",
+//       [
+//         "expo-build-properties",
+//         {
+//           "android": {
+//             // "compileSdkVersion": 35,
+//             // "targetSdkVersion": 35,
+//             // "buildToolsVersion": "35.0.0",
+//             // "kotlinVersion": "1.9.24"
+//             "compileSdkVersion": 35,
+//     "targetSdkVersion": 35,
+//     "buildToolsVersion": "35.0.0",
+//     "kotlinVersion": "2.0.21"
+
+
+//           }
+//         }
 //       ]
 //     ],
 //     "updates": {
-//       "enabled": false
+//       "enabled": true,
+//       "fallbackToCacheTimeout": 0
 //     },
-//     "assetBundlePatterns": ["**/*"],
+//     "assetBundlePatterns": [
+//       "**/*"
+//     ],
 //     "extra": {
-//       "router": {},
+//       "router": {
+//         "origin": false
+//       },
+//       "expo-navigation-bar": {
+//         "backgroundColor": "#0f172a",
+//         "barStyle": "light",
+//         "borderColor": "#1f2937",
+//         "visibility": "visible",
+//         "behavior": "inset-swipe",
+//         "position": "relative"
+//       },
 //       "eas": {
-//         "projectId": "7893c41a-db0f-47ff-8b48-ed1e9f0b0bb9"
+//         "projectId": "049cfc09-bfa6-430e-a482-94f5b4a8f30e"
 //       }
 //     },
-//     "owner": "ucmobileapk",
-//     "platforms": ["ios", "android"]
+//     "platforms": [
+//       "ios",
+//       "android"
+//     ],
+//     "owner": "ucapp"
 //   }
-// }///////////////////////
+// }
+
+
+
+
+
+
 {
   "expo": {
     "name": "BookStore",
     "slug": "bookstore-app",
     "version": "1.0.1",
-
     "runtimeVersion": {
       "policy": "appVersion"
     },
-
     "orientation": "portrait",
     "scheme": "bookstore",
-
-    "icon": "./assets/logo.jpeg",
-
+    "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
-
     "newArchEnabled": false,
 
     "splash": {
-      "image": "./assets/logo.jpeg",
+      "image": "./assets/logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
 
     "ios": {
       "supportsTablet": true,
-      "buildNumber": "2"
+      "buildNumber": "2",
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "audio",
+          "fetch",
+          "remote-notification"
+        ]
+      }
     },
 
     "android": {
       "package": "com.ucmobileapk.bookstore",
-
-      "versionCode": 2,
-
+      "versionCode": 4,
       "googleServicesFile": "./google-services.json",
-
+      "permissions": [
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "POST_NOTIFICATIONS",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo.jpeg",
+        "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
-      },
-
-      "edgeToEdgeEnabled": false
+      }
     },
 
     "plugins": [
       "expo-router",
-
       "expo-dev-client",
+
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-8923799920726415~8937259118"
+        }
+      ],
 
       [
         "expo-notifications",
         {
-          "icon": "./assets/logo.jpeg",
-          "color": "#ffffff"
+          "icon": "./assets/logo.png",
+          "color": "#ffffff",
+          "sounds": [
+            "./assets/alarm_sound.wav"
+          ]
         }
       ],
 
@@ -317,25 +212,55 @@
           "behavior": "inset-swipe",
           "position": "relative"
         }
+      ],
+
+      "@react-native-community/datetimepicker",
+      "expo-audio",
+
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "buildToolsVersion": "35.0.0",
+            "kotlinVersion": "2.0.21"
+          }
+        }
       ]
     ],
 
     "updates": {
-      "enabled": false
+      "enabled": true,
+      "fallbackToCacheTimeout": 0
     },
 
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
 
     "extra": {
-      "router": {},
-
+      "router": {
+        "origin": false
+      },
+      "expo-navigation-bar": {
+        "backgroundColor": "#0f172a",
+        "barStyle": "light",
+        "borderColor": "#1f2937",
+        "visibility": "visible",
+        "behavior": "inset-swipe",
+        "position": "relative"
+      },
       "eas": {
-        "projectId": "7893c41a-db0f-47ff-8b48-ed1e9f0b0bb9"
+        "projectId": "049cfc09-bfa6-430e-a482-94f5b4a8f30e"
       }
     },
 
-    "owner": "ucmobileapk",
+    "platforms": [
+      "ios",
+      "android"
+    ],
 
-    "platforms": ["ios", "android"]
+    "owner": "ucapp"
   }
 }

@@ -3,12 +3,16 @@
 import { createContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import { Alert } from "react-native";
+// import { Alert } from "react-native";
 import { useRouter } from "expo-router";
 
-// Base URL
-const APPURl ="https://0e22-102-90-96-16.ngrok-free.app";
-// const APPURl ="https://testbookstoreapp-backend-my8t.onrender.com";
+import { Platform, Alert } from "react-native";
+import {backendUrl_ngrok,backendDomainUrl} from "../utils/config/appUrl"
+
+// const APPURl =backendUrl_ngrok\
+const APPURl=backendDomainUrl
+
+
 
 export const BookContext = createContext();
 
@@ -16,6 +20,7 @@ export function BookProvider({ children }) {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+ 
 
   console.log("BookContext initialized with APPURl:", APPURl);
 
@@ -38,10 +43,10 @@ export function BookProvider({ children }) {
         
         
       }
-      const res = await axios.get(`${APPURl}/api/books/get/all-books`, {
+      const res = await axios.get(`${APPURl}/api/v1/books/get/all-books`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("Fetched books:", res);
+      // console.log("Fetched books:", res);
       setBooks(res.data);
     } catch (error) {
       console.log("Fetch books error:", error.response?.data || error.message);
@@ -93,7 +98,7 @@ export function BookProvider({ children }) {
       }
       
 
-      const response = await fetch(`${APPURl}/api/books/create-book`, {
+      const response = await fetch(`${APPURl}/api/v1/books/create-book`, {
         method: "POST",
         body: formData,
         headers: {
@@ -137,7 +142,7 @@ export function BookProvider({ children }) {
        throw new Error(errorMessage);
       // console
       // console.log("Create book error:", err.message);
-      throw new Error(err.message || "Failed to create book. Please try again.");
+      // throw new Error(err.message || "Failed to create book. Please try again.");
     }
   };
 
@@ -169,7 +174,7 @@ export function BookProvider({ children }) {
         console.log("File included in update:", file);
       }
 
-      await axios.put(`${APPURl}/api/books/update-book/${bookId}`, formData, {
+      await axios.put(`${APPURl}/api/v1/books/update-book/${bookId}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
@@ -201,7 +206,7 @@ export function BookProvider({ children }) {
     try {
       const token = await AsyncStorage.getItem("token");
 
-      await axios.delete(`${APPURl}/api/books/delete-book/${bookId}`, {
+      await axios.delete(`${APPURl}/api/v1/books/delete-book/${bookId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -214,22 +219,27 @@ export function BookProvider({ children }) {
     }
   };
 
-  // =========================
-  // INIT LOAD
-  // =========================
+
+  // ================================= end========================
+
+  // ==============================================
   useEffect(() => {
-    fetchBooks();
-  }, []);
+  fetchBooks();
+}, []);
+  // ==============================================
 
   return (
     <BookContext.Provider
       value={{
         books,
-        loading,
-        createBook,
-        fetchBooks,
-        updateBook,
-        deleteBook,
+  loading,
+
+  createBook,
+  fetchBooks,
+  updateBook,
+  deleteBook,
+
+  
       }}
     >
       {children}

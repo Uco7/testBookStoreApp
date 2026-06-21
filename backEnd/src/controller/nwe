@@ -1,643 +1,444 @@
+import sendEmail from "../middleWare/sendMail.js";
+import crypto from "crypto";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import User from "../models/user.js";
+import dotenv from "dotenv";
+import { sendPushNotification } from "../services/pushNotification.js";
+// import { sendPushNotification } from "../services/pushNotification.js";
 
 
-import Book from "../models/book.js";
-import { convertoPDF } from "../config/convert.js";
-import { uploadToCloudinary } from "../config/uploadToCloudinary.js";
-import sanitizeHtml from "sanitize-html";
-import { fileTypeFromBuffer } from "file-type";
+dotenv.config();
 
-const descriptionRegex = /^[A-Za-z0-9\s.,'"\-?!()]{0,2000}$/;
-const textRegex = /^[A-Za-z0-9\s.,'-]+$/;
-
-const allowedRealMimeTypes = [
-  "application/pdf",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/vnd.ms-powerpoint",
-  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-  "image/jpeg",
-  "image/png"
-];
-
-export const createBook = async (req, res) => {
+/* ---------- Helpers ---------- */
+const normalizeEmail = (email) => email?.toLowerCase().trim();
+const sanitize = (str) => str?.replace(/[<>\/\\$;]/g, "").trim();
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
+const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)[^\s]{8,128}$/;
+const NAME_REGEX = /^[a-zA-Z\s.'-]{2,50}$/;
+/* ---------- Registration Step 1: Request OTP ---------- */
+export const requestRegisterOTP = async (req, res) => {
   try {
-    const { title, author, description, fileLink } = req.body;
-
-    if (!title) {
-      return res.status(400).json({
-        message: "title field is required"
-      });
+    const { username, fullName, email, password } = req.body;
+    
+    if (!username || !fullName || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
     }
-
-    if (typeof title !== "string" || title.trim() === "") {
-      return res.status(400).json({
-        message: "valid title field is required"
-      });
+    
+    const cleanUsername = sanitize(username);
+    console.log("Cleaned Username:", cleanUsername);
+    const cleanEmail = normalizeEmail(email);
+    console.log("Cleaned Email:", cleanEmail);
+    
+    if (!USERNAME_REGEX.test(cleanUsername)||typeof cleanUsername!=="string"  ) {
+      return res.status(400).json({ message: "Invalid username format" });
     }
-
-    if (!textRegex.test(title.trim())) {
-      return res.status(400).json({
-        message: "invalid title field"
-      });
+    if (!NAME_REGEX.test(sanitize(fullName))||typeof fullName!=="string") {
+      return res.status(400).json({ message: "Invalid full name format" });
     }
-
-    if (author != null) {
-      if (typeof author !== "string") {
-        return res.status(400).json({
-          message: "invalid author field"
-        });
-      }
-
-      const cleanAuthor = author.trim();
-
-      if (cleanAuthor === "" || !textRegex.test(cleanAuthor)) {
-        return res.status(400).json({
-          message: "invalid author field"
-        });
-      }
+    
+    if (!EMAIL_REGEX.test(cleanEmail)) {
+      return res.status(400).json({ message: "Invalid email format" });
     }
-
-    if (description != null) {
-      if (typeof description !== "string") {
-        return res.status(400).json({
-          message: "invalid description field"
-        });
-      }
-
-      const cleanDesc = description.trim();
-
-      if (
-        cleanDesc === "" ||
-        !descriptionRegex.test(cleanDesc)
-      ) {
-        return res.status(400).json({
-          message: "invalid description field"
-        });
-      }
+    
+    if (!PASSWORD_REGEX.test(password)) {
+      return res.status(400).json({ message: "Password too weak" });
     }
+    
+    
 
-    const cleanDescription = description
-      ? sanitizeHtml(description, {
-          allowedTags: [],
-          allowedAttributes: {}
-        })
-      : "";
-
-    let fileUrl = null;
-    let fileType = null;
-
-    if (req.file) {
-      const buffer = req.file.buffer;
-
-      const detectedType = await fileTypeFromBuffer(buffer);
-
-      if (!detectedType) {
-        return res.status(400).json({
-          message: "Unable to detect actual file type"
-        });
-      }
-
-      if (!allowedRealMimeTypes.includes(detectedType.mime)) {
-        return res.status(400).json({
-          message: "Actual file type is not allowed"
-        });
-      }
-
-      let finalBuffer = buffer;
-
-      if (detectedType.mime !== "application/pdf") {
-        finalBuffer = await convertoPDF(buffer);
-      }
-
-      const fileName = `${Date.now()}-book`;
-
-      const uploadResult = await uploadToCloudinary(
-        finalBuffer,
-        fileName
-      );
-
-      fileUrl = uploadResult.secure_url + "?fl_attachment";
-      fileType = "file";
-    }
-
-    if (fileLink != null) {
-      if (
-        typeof fileLink !== "string" ||
-        fileLink.trim() === ""
-      ) {
-        return res.status(400).json({
-          message: "provide a valid https link"
-        });
-      }
-
-      try {
-        const cleanLink = new URL(fileLink.trim());
-
-        if (cleanLink.protocol !== "https:") {
-          return res.status(400).json({
-            message: "only https links are allowed"
-          });
-        }
-
-        fileUrl = null;
-        fileType = "link";
-      } catch {
-        return res.status(400).json({
-          message: "invalid URL format"
-        });
-      }
-    }
-
-    const book = new Book({
-      title: title.trim(),
-      author: author ? author.trim() : "",
-      description: cleanDescription,
-      fileUrl,
-      fileLink: fileLink ? fileLink.trim() : null,
-      fileType,
-      user: req.user?.id
+    const existing = await User.findOne({
+      $or: [
+        { email: cleanEmail },
+        { username: cleanUsername }
+      ]
     });
-
-    await book.save();
-
-    res.status(201).json(book);
-  } catch (error) {
-    res.status(500).json({
-      message: error.message
-    });
-  }
-};
-
-export const updateBook = async (req, res) => {
-  try {
-    const { title, author, description, fileLink } = req.body;
-
-    const book = await Book.findById(req.params.id);
-
-    if (!book) {
-      return res.status(404).json({
-        message: "book not found"
-      });
+    console.log("Existing User Check:", existing);
+      
+    if (existing&&existing.isVerified) {
+      return res.status(409).json({ message: "User already exists" });
     }
 
-    if (title != null) {
-      if (typeof title !== "string") {
-        return res.status(400).json({
-          message: "invalid title field"
-        });
-      }
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log("Generated OTP:", otp);
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    await User.findOneAndUpdate(
+      { email: cleanEmail },
+      {
+        username: cleanUsername,
+        fullName: sanitize(fullName),
+        email: cleanEmail,
+        password: hashedPassword,
+        otp,
+        otpExpires: Date.now() + 15 * 60 * 1000, // 15 mins
+        isVerified: false,
+      },
+      { upsert: true, new: true }
+    );
+
+    res.status(200).json({ message: "Verification code sent to email" });
+
+    sendEmail({
+      to: cleanEmail,
+      subject: "Your BookStore App Verification Code",
+      html: `<p>Hi ${fullName},</p><p>Your verification code is <strong>${otp}</strong>. It expires in 15 minutes.</p>`,
+    }).catch((err) => console.error("Email send failed:", err));
 
-      const cleanTitle = title.trim();
-
-      if (
-        cleanTitle === "" ||
-        !textRegex.test(cleanTitle)
-      ) {
-        return res.status(400).json({
-          message: "invalid title field"
-        });
-      }
-
-      book.title = cleanTitle;
-    }
-
-    if (author != null) {
-      if (typeof author !== "string") {
-        return res.status(400).json({
-          message: "invalid author field"
-        });
-      }
-
-      const cleanAuthor = author.trim();
-
-      if (
-        cleanAuthor === "" ||
-        !textRegex.test(cleanAuthor)
-      ) {
-        return res.status(400).json({
-          message: "invalid author field"
-        });
-      }
-
-      book.author = cleanAuthor;
-    }
-
-    if (description != null) {
-      if (typeof description !== "string") {
-        return res.status(400).json({
-          message: "invalid description field"
-        });
-      }
-
-      const cleanDesc = description.trim();
-
-      if (
-        cleanDesc === "" ||
-        !descriptionRegex.test(cleanDesc)
-      ) {
-        return res.status(400).json({
-          message: "invalid description field"
-        });
-      }
-
-      book.description = sanitizeHtml(description, {
-        allowedTags: [],
-        allowedAttributes: {}
-      });
-    }
-
-    if (req.file) {
-      const buffer = req.file.buffer;
-
-      const detectedType = await fileTypeFromBuffer(buffer);
-
-      if (!detectedType) {
-        return res.status(400).json({
-          message: "Unable to detect actual file type"
-        });
-      }
-
-      if (!allowedRealMimeTypes.includes(detectedType.mime)) {
-        return res.status(400).json({
-          message: "Actual file type is not allowed"
-        });
-      }
-
-      let finalBuffer = buffer;
-
-      if (detectedType.mime !== "application/pdf") {
-        finalBuffer = await convertoPDF(buffer);
-      }
-
-      const filename = `${Date.now()}-book`;
-
-      const uploadResult = await uploadToCloudinary(
-        finalBuffer,
-        filename
-      );
-
-      book.fileUrl =
-        uploadResult.secure_url + "?fl_attachment";
-
-      book.fileLink = null;
-      book.fileType = "file";
-    }
-
-    if (fileLink != null) {
-      if (
-        typeof fileLink !== "string" ||
-        fileLink.trim() === ""
-      ) {
-        return res.status(400).json({
-          message: "provide a valid https link"
-        });
-      }
-
-      try {
-        const cleanLink = new URL(fileLink.trim());
-
-        if (cleanLink.protocol !== "https:") {
-          return res.status(400).json({
-            message: "only https links are allowed"
-          });
-        }
-
-        book.fileLink = cleanLink.href;
-        book.fileUrl = null;
-        book.fileType = "link";
-      } catch {
-        return res.status(400).json({
-          message: "invalid URL format"
-        });
-      }
-    }
-
-    await book.save();
-
-    res.json(book);
-  } catch (error) {
-    res.status(500).json({
-      message: error.message
-    });
-  }
-};
-
-
-
-
-import Book from "../models/book.js";
-import { convertoPDF } from "../config/convert.js";
-import { uploadToCloudinary } from "../config/uploadToCloudinary.js";
-import sanitizeHtml from "sanitize-html";
-import { fileTypeFromBuffer } from "file-type";
-import fs from "fs/promises";
-import path from "path";
-import os from "os";
-import ClamScan from "clamscan";
-
-/* =========================
-   CONFIG
-========================= */
-
-const textRegex = /^[A-Za-z0-9\s.,'-]+$/;
-const descriptionRegex = /^[A-Za-z0-9\s.,'"\-?!()]{0,2000}$/;
-
-const allowedMimeTypes = [
-  "application/pdf",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/vnd.ms-powerpoint",
-  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-  "image/jpeg",
-  "image/png"
-];
-
-/* =========================
-   CLAMAV INIT
-========================= */
-
-const initClamAV = async () => {
-  const clamscan = await new ClamScan().init({
-    removeInfected: false,
-    quarantineInfected: false,
-    preference: "clamdscan",
-    clamdscan: {
-      host: "127.0.0.1",
-      port: 3310,
-      timeout: 60000,
-      localFallback: true
-    }
-  });
-
-  return clamscan;
-};
-
-/* =========================
-   CREATE BOOK
-========================= */
-
-export const createBook = async (req, res) => {
-  try {
-    const { title, author, description, fileLink } = req.body;
-
-    if (!title || typeof title !== "string" || title.trim() === "") {
-      return res.status(400).json({ message: "Invalid title" });
-    }
-
-    if (!textRegex.test(title.trim())) {
-      return res.status(400).json({ message: "Invalid title format" });
-    }
-
-    let fileUrl = null;
-    let fileType = null;
-
-    /* =========================
-       FILE UPLOAD + SCAN
-    ========================= */
-
-    if (req.file) {
-      const buffer = req.file.buffer;
-
-      // 1. Detect real file type
-      const detected = await fileTypeFromBuffer(buffer);
-
-      if (!detected || !allowedMimeTypes.includes(detected.mime)) {
-        return res.status(400).json({
-          message: "Invalid or unsupported file type"
-        });
-      }
-
-      // 2. Virus scan (ClamAV)
-      const tempFile = path.join(
-        os.tmpdir(),
-        `${Date.now()}-${req.file.originalname}`
-      );
-
-      await fs.writeFile(tempFile, buffer);
-
-      const clam = await initClamAV();
-      const scanResult = await clam.isInfected(tempFile);
-
-      await fs.unlink(tempFile);
-
-      if (scanResult) {
-        return res.status(400).json({
-          message: "File failed virus scan"
-        });
-      }
-
-      // 3. Convert if needed
-      let finalBuffer = buffer;
-
-      if (detected.mime !== "application/pdf") {
-        finalBuffer = await convertoPDF(buffer);
-      }
-
-      // 4. Upload
-      const upload = await uploadToCloudinary(
-        finalBuffer,
-        `${Date.now()}-book`
-      );
-
-      fileUrl = upload.secure_url + "?fl_attachment";
-      fileType = "file";
-    }
-
-    /* =========================
-       LINK HANDLING
-    ========================= */
-
-    if (fileLink) {
-      const trimmed = fileLink.trim();
-
-      let url;
-      try {
-        url = new URL(trimmed);
-      } catch {
-        return res.status(400).json({ message: "Invalid URL format" });
-      }
-
-      if (url.protocol !== "https:") {
-        return res.status(400).json({
-          message: "Only HTTPS links allowed"
-        });
-      }
-
-      fileUrl = url.href;
-      fileType = "link";
-    }
-
-    /* =========================
-       SAVE
-    ========================= */
-
-    const book = new Book({
-      title: title.trim(),
-      author: author?.trim() || "",
-      description: description
-        ? sanitizeHtml(description, {
-            allowedTags: [],
-            allowedAttributes: {}
-          })
-        : "",
-      fileUrl,
-      fileType,
-      user: req.user?.id
-    });
-
-    await book.save();
-
-    return res.status(201).json(book);
   } catch (err) {
-    return res.status(500).json({
-      message: err.message
-    });
+    console.error("OTP Request Error:", err);
+    return res.status(500).json({ message: err.message });
   }
 };
 
-/* =========================
-   UPDATE BOOK
-========================= */
-
-export const updateBook = async (req, res) => {
+/* ---------- Registration Step 2: Verify OTP ---------- */
+export const verifyAndRegister = async (req, res) => {
   try {
-    const { title, author, description, fileLink } = req.body;
+    const { email, otp } = req.body;
+    console.log("Verification Request:", req.body);
 
-    const book = await Book.findById(req.params.id);
-
-    if (!book) {
-      return res.status(404).json({ message: "Book not found" });
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Email and OTP are required" });
     }
-
-    /* =========================
-       UPDATE TEXT FIELDS
-    ========================= */
-
-    if (title) {
-      if (typeof title !== "string" || !textRegex.test(title.trim())) {
-        return res.status(400).json({ message: "Invalid title" });
-      }
-      book.title = title.trim();
-    }
-
-    if (author) {
-      if (typeof author !== "string" || !textRegex.test(author.trim())) {
-        return res.status(400).json({ message: "Invalid author" });
-      }
-      book.author = author.trim();
-    }
-
-    if (description) {
-      if (
-        typeof description !== "string" ||
-        !descriptionRegex.test(description.trim())
-      ) {
-        return res.status(400).json({ message: "Invalid description" });
-      }
-
-      book.description = sanitizeHtml(description, {
-        allowedTags: [],
-        allowedAttributes: {}
-      });
-    }
-
-    /* =========================
-       FILE UPLOAD + SCAN
-    ========================= */
-
-    if (req.file) {
-      const buffer = req.file.buffer;
-
-      const detected = await fileTypeFromBuffer(buffer);
-
-      if (!detected || !allowedMimeTypes.includes(detected.mime)) {
-        return res.status(400).json({
-          message: "Invalid file type"
-        });
-      }
-
-      const tempFile = path.join(
-        os.tmpdir(),
-        `${Date.now()}-${req.file.originalname}`
-      );
-
-      await fs.writeFile(tempFile, buffer);
-
-      const clam = await initClamAV();
-      const scanResult = await clam.isInfected(tempFile);
-
-      await fs.unlink(tempFile);
-
-      if (scanResult) {
-        return res.status(400).json({
-          message: "File failed virus scan"
-        });
-      }
-
-      let finalBuffer = buffer;
-
-      if (detected.mime !== "application/pdf") {
-        finalBuffer = await convertoPDF(buffer);
-      }
-
-      const upload = await uploadToCloudinary(
-        finalBuffer,
-        `${Date.now()}-book`
-      );
-
-      book.fileUrl = upload.secure_url + "?fl_attachment";
-      book.fileType = "file";
-      book.fileLink = null;
-    }
-
-    /* =========================
-       LINK UPDATE
-    ========================= */
-
-    if (fileLink) {
-      let url;
-
-      try {
-        url = new URL(fileLink.trim());
-      } catch {
-        return res.status(400).json({ message: "Invalid URL" });
-      }
-
-      if (url.protocol !== "https:") {
-        return res.status(400).json({
-          message: "Only HTTPS allowed"
-        });
-      }
-
-      book.fileLink = url.href;
-      book.fileUrl = null;
-      book.fileType = "link";
-    }
-
-    await book.save();
-
-    return res.json(book);
-  } catch (err) {
-    return res.status(500).json({
-      message: err.message
-    });
-  }
-};
-
-export const getBooks=async(req,res)=>{
-    try {
-        const books=await Book.find({user:req.user.id}).sort({createdAt:-1});
-        if(!books){
-            return res.status(400).json({
-                message:"no data upload  file or docs"
+    const cleanEmail = normalizeEmail(email);
+    console.log("Cleaned Email for Verification:", cleanEmail);
+if(!EMAIL_REGEX.test(cleanEmail)){
+          return  res.status(400).json({
+                message:"invalid email format"
             })
         }
-        console.log("book",books)
-        res.json(books)
-    } catch (err) {
-        res.status(500).json({
-            message:err.message 
-        })
-        
+    const user = await User.findOne({ email: cleanEmail });
+    console.log("User Found for Verification:", user);
+
+    if (!user) {
+      return res.status(400).json({ message: "User session not found. Please register again." });
     }
-}
+
+    if (user.isVerified) {
+      return res.status(400).json({ message: "User already verified" });
+    }
+
+    if (user.otp !== otp) {
+      return res.status(400).json({ message: "Invalid verification code" });
+    }
+
+    if (user.otpExpires < Date.now()) {
+      return res.status(400).json({ message: "OTP expired" });
+    }
+
+    user.isVerified = true;
+    user.otp = null;
+    user.otpExpires = null;
+
+    await user.save();
+    console.log("User verified and saved:", user);
+
+    res.status(201).json({
+      message: "Registration successful",
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+      },
+    });
+
+  } catch (err) {
+    console.error("Verification Error:", err);
+    res.status(500).json({ message: "Registration failed" });
+  }
+};
+
+/* ---------- Login ---------- */
+export const login = async (req, res) => {
+  try {
+    const { identifier, password } = req.body;
+
+    if (!identifier || !password) {
+      return res.status(400).json({ msg: "Invalid credentials" });
+    }
+
+    const cleanIdentifier = identifier?.trim();
+
+    const query = EMAIL_REGEX.test(cleanIdentifier)
+      ? { email: normalizeEmail(cleanIdentifier) }
+      : { username: sanitize(cleanIdentifier) };
+
+    const user = await User.findOne(query).select("+password");
+
+    if (!user) {
+      return res.status(400).json({ msg: "Invalid credentials" });
+    }
+
+    if (!user.isVerified) {
+      return res.status(403).json({ msg: "Account not verified" });
+    }
+
+    const match = await bcrypt.compare(password, user.password);
+
+    if (!match) {
+      return res.status(400).json({ msg: "Invalid credentials" });
+    }
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    // Mark the user online the moment they successfully authenticate.
+    user.activityStatus = {
+      isOnline: true,
+      lastSeen: new Date(),
+    };
+    await user.save();
+
+    res.json({ token });
+
+  } catch (err) {
+    res.status(500).json({ msg: "Server error" });
+  }
+};
+
+/* ---------- Logout ---------- */
+// Mounted behind your auth middleware (req.user must be set).
+// Flips the user back to offline and stamps lastSeen so the
+// dashboard's "Offline · Xm ago" text is accurate.
+export const logout = async (req, res) => {
+  try {
+    await User.findByIdAndUpdate(req.user.id, {
+      "activityStatus.isOnline": false,
+      "activityStatus.lastSeen": new Date(),
+    });
+
+    res.json({ success: true, message: "Logged out" });
+
+  } catch (err) {
+    console.error("Logout Error:", err);
+    res.status(500).json({
+      message: err.message || "Server error",
+    });
+  }
+};
+
+/* ---------- Get User ---------- */
+// export const getUser = async (req, res) => {
+//   try {
+//     const user = await User.findById(req.user.id).select("-password");
+//     if (!user) return res.status(404).json({ message: "User not found" });
+//     res.json(user);
+//   } catch (err) {
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
+
+
+export const getUser = async (req, res) => {
+  try {
+    console.log("REQ USER:", req.user);
+
+    // The app calls this on launch / foreground to fetch the profile,
+    // so it doubles as a free heartbeat: every successful call here
+    // means the user is actively using the app right now.
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        "activityStatus.isOnline": true,
+        "activityStatus.lastSeen": new Date(),
+      },
+      { new: true }
+    ).select("-password");
+
+    console.log("FOUND USER:", user);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    res.json(user);
+  } catch (err) {
+    console.log("GET USER ERROR:", err);
+
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
+/* ---------- Forgot Password ---------- */
+export const forgotPassword = async (req, res) => {
+  try {
+    const { identifier } = req.body;
+    console.log("Forgot Password Request:", req.body);
+
+    if (!identifier) {
+      return res.status(400).json({ message: "Email or username is required" });
+    }
+     const cleanIdentifier = identifier?.trim();
+
+const query = EMAIL_REGEX.test(cleanIdentifier)
+      ? { email: normalizeEmail(cleanIdentifier) }
+      : { username: sanitize(cleanIdentifier) };
+    const user = await User.findOne(query);
+     
+
+    if (!user) {
+      return res.status(404).json({ message: "Account not found" });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    user.resetPasswordOTP = crypto
+      .createHash("sha256")
+      .update(otp)
+      .digest("hex");
+
+    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
+
+    await user.save();
+
+    sendEmail({
+      to: user.email, 
+      subject: "Your BookStore App Password Reset Code",
+      html: `<p>Hi ${user.fullName},</p><p>Your password reset code is <strong>${otp}</strong>. It expires in 15 minutes.</p>`,
+    }).catch((err) => console.error("Reset email failed:", err));
+
+    res.status(200).json({ message: "Reset code sent to your email!" });
+
+  } catch (err) {
+    res.status(500).json({ message: "Error sending email" });
+  }
+};
+
+
+/* ---------- Reset Password ---------- */
+export const resetPassword = async (req, res) => {
+  try {
+    const { identifier, otp, password } = req.body;
+    console.log("Reset Password Request:", req.body);
+
+    if (!password || !PASSWORD_REGEX.test(password)) {
+      return res.status(400).json({
+        message: "Password must be 8-64 chars with letters and numbers.",
+      });
+    }
+
+    const hashedOtp = crypto
+      .createHash("sha256")
+      .update(otp)
+      .digest("hex");
+      console.log("Hashed OTP for Lookup:", hashedOtp);
+
+    const user = await User.findOne({
+      $or: [
+        { email: normalizeEmail(identifier) },
+        { username: sanitize(identifier) },
+      ],
+      resetPasswordOTP: hashedOtp,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+    console.log("Reset Password User Lookup:", user);
+
+    if (!user) {
+      console.log("Invalid or expired OTP for identifier:", identifier);
+      return res.status(400).json({ message: "Invalid or expired code" });
+    }
+
+    user.password = await bcrypt.hash(password, 12);
+    user.resetPasswordOTP = null;
+    user.resetPasswordExpires = null;
+
+    await user.save();
+
+    res.status(200).json({ message: "Password updated successfully!" });
+
+  } catch (err) {
+    console.error("Reset Error:", err);
+    res.status(500).json({ message: "Reset failed" });
+  }
+};
+
+
+export const savePushToken = async (req, res) => {
+  try {
+    console.log("SAVE PUSH TOKEN HIT");
+
+    console.log("REQ USER:", req.user);
+    console.log("BODY:", req.body);
+
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({
+        message: "Token required",
+      });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        pushToken: token,
+      },
+      {
+        new: true,
+      }
+    );
+
+    console.log("UPDATED USER:", user);
+
+    res.json({
+      success: true,
+      message: "Push token saved",
+    });
+  } catch (err) {
+    console.log("SAVE TOKEN ERROR:", err);
+
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+
+// export const savePushToken = async (req, res) => {
+//   try {
+//     const { token } = req.body;
+
+//     if (!token) {
+//       return res.status(400).json({ message: "Token required" });
+//     }
+
+//     await User.findByIdAndUpdate(req.user.id, {
+//       pushToken: token,
+//     });
+
+//     res.json({ message: "Push token saved" });
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+
+
+export const sendTestNotification = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    console.log("User pushToken:", user?.pushToken);
+
+    if (!user?.pushToken) {
+      return res.status(400).json({ message: "No push token found" });
+    }
+
+    const result = await sendPushNotification(
+      user.pushToken,
+      "📚 BookStore",
+      "This is a backend push notification 🚀",
+      { mode: "test" }
+    );
+
+    console.log("Test result:", result);
+
+    res.json({ message: "Notification sent" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

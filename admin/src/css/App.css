@@ -1,0 +1,20 @@
+:root{
+    --primary-color: #4CAF50;
+    --secondary-color: #f0f0f0;
+    /* --secondary-color1:rgb(8, 8, 47); */
+        --secondary-color1: rgb(21, 30, 49);
+    --secondary-color2: #431c3a;
+
+    --text-color-primary: #333;
+    --text-color-secondary: #c2bdbd;
+}
+
+body{
+    background-color: var(--secondary-color1);
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    color: var(--text-color-secondary);
+}
+
+

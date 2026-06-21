@@ -9,8 +9,8 @@ import { Link } from "expo-router";
 import { useUser } from "../../hook/useUser";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-
-
+import ProtectedRoute from "../../utils/authCheck/ProtectedRoute";
+import { BannerAdComponent } from "../../component/AdsManager";
 
 const Profile = () => {
 const { user, authReady, logOut } = useUser();
@@ -48,6 +48,8 @@ const { user, authReady, logOut } = useUser();
   }
 
   return (
+    <ProtectedRoute>  
+
     <ThemeView style={styles.container} safe={true}>
       {/* Header */}
       <View style={styles.header}>
@@ -70,6 +72,7 @@ const { user, authReady, logOut } = useUser();
 
       {/* Actions */}
       <View style={styles.actions}>
+        <ProfileAction icon="receipt-outline" label="Transaction History" href="/transactionscreen" />
         <ProfileAction icon="add-circle-outline" label="Upload Book/File" href="/create" />
         <ProfileAction icon="library-outline" label="Book Shelf/Files" href="/book" />
         <ProfileAction icon="home-outline" label="Home" href="/" />
@@ -78,7 +81,12 @@ const { user, authReady, logOut } = useUser();
     <ThemeText style={[styles.actionText, { color: "#ef4444" }]}>Logout</ThemeText>
   </Pressable>
       </View>
+      <View style={styles.bannerContainer}>
+
+      <BannerAdComponent />
+      </View>
     </ThemeView>
+</ProtectedRoute>       
   );
 };
 
@@ -161,4 +169,16 @@ const styles = StyleSheet.create({
     color: "#4f46e5",
     fontWeight: "500",
   },
+  bannerContainer: {
+  position: "absolute",
+  bottom: 0,
+  left: 0,
+  right: 0,
+  alignItems: "center",
+  justifyContent: "center",
+  paddingBottom: 5,
+
+  // optional styling
+  backgroundColor: "transparent",
+},
 });

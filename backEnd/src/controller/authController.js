@@ -6,6 +6,8 @@ import jwt from "jsonwebtoken";
 import User from "../models/user.js";
 import dotenv from "dotenv";
 import { sendPushNotification } from "../services/pushNotification.js";
+// import { sendPushNotification } from "../services/pushNotification.js";
+
 
 dotenv.config();
 
@@ -103,7 +105,7 @@ export const verifyAndRegister = async (req, res) => {
     const cleanEmail = normalizeEmail(email);
     console.log("Cleaned Email for Verification:", cleanEmail);
 if(!EMAIL_REGEX.test(cleanEmail)){
-            res.status(400).json({
+          return  res.status(400).json({
                 message:"invalid email format"
             })
         }
@@ -182,6 +184,15 @@ export const login = async (req, res) => {
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
+        // Mark the user online the moment they successfully authenticate.
+    user.activityStatus = {
+      isOnline: true,
+      lastSeen: new Date(),
+    };
+    await user.save();
+
+
+
 
     res.json({ token });
 
@@ -191,16 +202,41 @@ export const login = async (req, res) => {
 };
 
 /* ---------- Get User ---------- */
+// export const getUser = async (req, res) => {
+//   try {
+//     const user = await User.findById(req.user.id).select("-password");
+//     if (!user) return res.status(404).json({ message: "User not found" });
+//     res.json(user);
+//   } catch (err) {
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
+
+
 export const getUser = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
-    if (!user) return res.status(404).json({ message: "User not found" });
+    console.log("REQ USER:", req.user);
+
+    const user = await User.findById(req.user.id)
+      .select("-password");
+
+    console.log("FOUND USER:", user);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
     res.json(user);
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    console.log("GET USER ERROR:", err);
+
+    res.status(500).json({
+      message: "Server error",
+    });
   }
 };
-
 
 /* ---------- Forgot Password ---------- */
 export const forgotPassword = async (req, res) => {
@@ -298,17 +334,83 @@ export const resetPassword = async (req, res) => {
 
 export const savePushToken = async (req, res) => {
   try {
+    console.log("SAVE PUSH TOKEN HIT");
+
+    console.log("REQ USER:", req.user);
+    console.log("BODY:", req.body);
+
     const { token } = req.body;
 
     if (!token) {
-      return res.status(400).json({ message: "Token required" });
+      return res.status(400).json({
+        message: "Token required",
+      });
     }
 
-    await User.findByIdAndUpdate(req.user.id, {
-      pushToken: token,
-    });
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        pushToken: token,
+      },
+      {
+        new: true,
+      }
+    );
 
-    res.json({ message: "Push token saved" });
+    console.log("UPDATED USER:", user);
+
+    res.json({
+      success: true,
+      message: "Push token saved",
+    });
+  } catch (err) {
+    console.log("SAVE TOKEN ERROR:", err);
+
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+
+// export const savePushToken = async (req, res) => {
+//   try {
+//     const { token } = req.body;
+
+//     if (!token) {
+//       return res.status(400).json({ message: "Token required" });
+//     }
+
+//     await User.findByIdAndUpdate(req.user.id, {
+//       pushToken: token,
+//     });
+
+//     res.json({ message: "Push token saved" });
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+
+
+export const sendTestNotification = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    console.log("User pushToken:", user?.pushToken);
+
+    if (!user?.pushToken) {
+      return res.status(400).json({ message: "No push token found" });
+    }
+
+    const result = await sendPushNotification(
+      user.pushToken,
+      "📚 BookStore",
+      "This is a backend push notification 🚀",
+      { mode: "test" }
+    );
+
+    console.log("Test result:", result);
+
+    res.json({ message: "Notification sent" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -316,28 +418,25 @@ export const savePushToken = async (req, res) => {
 
 
 
-    export const sendTestNotification = async (req, res) => {
+
+
+/* ---------- Logout ---------- */
+// Mounted behind your auth middleware (req.user must be set).
+// Flips the user back to offline and stamps lastSeen so the
+// dashboard's "Offline · Xm ago" text is accurate.
+export const logout = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
-    console.log("User for Test Notification:", user.pushToken);
-
-    if (!user?.pushToken) {
-      return res.status(400).json({ message: "No push token found" });
-    }
-
-     const result = await sendPushNotification(
-      user.pushToken,
-      "📚 BookStore",
-      "This is a backend push notification 🚀",
-      {
-        type: "TEST",
-      }
-    );
-    console.log("Test Notification Result:", result);
-
-    res.json({ message: "Notification sent successfully" });
+    await User.findByIdAndUpdate(req.user.id, {
+      "activityStatus.isOnline": false,
+      "activityStatus.lastSeen": new Date(),
+    });
+ 
+    res.json({ success: true, message: "Logged out" });
+ 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: err.message });
+    console.error("Logout Error:", err);
+    res.status(500).json({
+      message: err.message || "Server error",
+    });
   }
 };

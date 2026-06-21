@@ -1,12 +1,615 @@
 
 
+// import {
+//   Keyboard,
+//   TouchableWithoutFeedback,
+//   Alert,
+//   View,
+//   StyleSheet,
+//   Pressable
+// } from "react-native";
+// import React, { useState, useCallback } from "react";
+// import ThemeView from "../../component/ThemeView";
+// import ThemeText from "../../component/ThemeText";
+// import ThemeButton from "../../component/ThemeButton";
+// import Spacer from "../../component/Spacer";
+// import InputTheme from "../../component/InputTheme";
+// import * as DocumentPicker from "expo-document-picker";
+// import { useBook } from "../../hook/useBook";
+// import { useRouter, useFocusEffect } from "expo-router";
+// import { Ionicons } from "@expo/vector-icons";
+// import { colors } from "../../constant/colors";
+// import KeyBordAvoidingComponent from "../../component/KeyBordAvoidingComponent";
+// import CardTheme from "../../component/CardTheme";
+// import { validateBookInput } from "../../utils/bookValidator";
+
+// export default function Create() {
+//   const [selectedType, setSelectedType] = useState("doc"); // default type
+//   const [title, setTitle] = useState("");
+//   const [author, setAuthor] = useState("");
+//   const [description, setDescription] = useState("");
+//   const [file, setFile] = useState(null);
+//   const [fileLink, setFileLink] = useState("");
+//   const [status, setStatus] = useState("idle"); // idle | uploading | error
+  
+
+//   const { createBook } = useBook();
+//   const router = useRouter();
+
+//   useFocusEffect(
+//     useCallback(() => {
+//       setTitle("");
+//       setAuthor("");
+//       setDescription("");
+//       setFile(null);
+//       setFileLink("");
+//     }, [])
+//   );
+//     const cardTitle=()=>{
+//       if(selectedType==="reading") return "Add Reading Material";
+//       if(selectedType==="link") return "Add New Link";
+//       return "Add Document";
+//     }
+//   const pickFile = async () => {
+//     const result = await DocumentPicker.getDocumentAsync({
+//       type: "*/*",
+//       copyToCacheDirectory: true,
+//     });
+//     if (!result.canceled) setFile(result.assets[0]);
+//     console.log("File picked:", result);
+//   };
+
+//   const handleSubmit = async () => {
+
+  
+//     const validationError = validateBookInput({ title, author, description, file, fileLink, selectedType });
+//     if (validationError) {
+//       return Alert.alert("Validation Error", validationError);
+//     }
+// if (status !== "idle") return; // Prevent double submission
+//     setStatus("saving...");
+//     try {
+//       const ok = await createBook({
+//         title,
+//         author: selectedType !== "link" ? author : undefined,
+//         description,
+//         file: selectedType !== "link" ? file : undefined,
+//         fileLink: selectedType === "link" ? fileLink : undefined,
+//       });
+
+//       if (!ok) throw new Error(" upload failed");
+//       setStatus("saved");
+//       setTimeout(() => {
+
+//       setTitle("");
+//       setAuthor("");
+//       setDescription("");
+//       setFile(null);
+//       setFileLink("");
+//       setStatus("idle");
+//       router.replace("/book");
+//       }, 1500);
+//     } catch (err) {
+//       setStatus("idle");
+//       Alert.alert( err.response?.data?.message || err.message || "An error occurred while saving the book");
+//     }
+//   };
+
+//   const renderButtonText = () => {
+//   if (status === "saving...") return "Saving...";
+//   if (status === "saved") return "Upload complete 🎉";
+//   return "Save ";
+// };
+// const shortenFileName = (name, maxLength = 20) => {
+//   if(!name) return "";
+//   if(name.length <= maxLength) return name;
+//   const fileExt=name.split(".").pop();
+//   const baseName=name.substring(0,maxLength-fileExt.length-4);
+//   return `${baseName}...${fileExt}`;
+
+// }
+
+//   return (
+//       <KeyBordAvoidingComponent>
+//          <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
+
+//       <ThemeView style={styles.container} safe={true}>
+
+//         {/* Type Selector Buttons */}
+//         <View style={styles.row}>
+//           <ThemeButton
+//             onPress={() => setSelectedType("reading")}
+//             style={[styles.typeBtn,  selectedType === "reading" && styles.typeBtnActive]}
+//           >
+//             <View style={styles.btnContent}>
+//               <Ionicons name="book-outline" size={16} color="#fff" />
+//               <ThemeText style={styles.btnText}>Reading Book/Docs</ThemeText>
+//             </View>
+//           </ThemeButton>
+
+//           <ThemeButton
+//             onPress={() => setSelectedType("link")}
+//             style={[styles.typeBtn, selectedType === "link" && styles.typeBtnActive]}
+//           >
+//             <View style={styles.btnContent}>
+//               <Ionicons name="link-outline" size={16} color="#fff" />
+//               <ThemeText style={styles.btnText}>File/Doc Link</ThemeText>
+//             </View>
+//           </ThemeButton>
+
+//           <ThemeButton
+//             onPress={() => setSelectedType("doc")}
+//             style={[styles.typeBtn, selectedType === "doc" && styles.typeBtnActive]}
+//           >
+//             <View style={styles.btnContent}>
+//               <Ionicons name="document-text-outline" size={16} color="#fff" />
+//               <ThemeText style={styles.btnText}>File/Doc</ThemeText>
+//             </View>
+//           </ThemeButton>
+//         </View>
+
+//         <Spacer />
+
+//         {/* Input Card */}
+//         <CardTheme style={styles.card}>
+//           <View style={styles.header}>
+//             <Ionicons name="arrow-back" size={22} color="#fff" onPress={() => router.back()} />
+//             <ThemeText style={styles.headerTitle}>
+//               {cardTitle()}
+          
+//            </ThemeText>
+//             <View style={{ width: 22 }} />
+//           </View>
+
+//           <Spacer height={20} />
+
+//           {/* Common Inputs */}
+//           <InputTheme
+//             placeholder="File Name/Title"
+//             value={title}
+//             onChangeText={setTitle}
+//           />
+//           <Spacer />
+
+
+//           {(selectedType === "doc" || selectedType === "reading" ) && (
+//             <>
+//               <InputTheme
+//                 placeholder="Author Name(owner name)"
+//                 value={author}
+//                 onChangeText={setAuthor}
+//               />
+//               <Spacer />
+//               <InputTheme
+//                 placeholder="Description (optional)"
+//                 value={description}
+//                 onChangeText={setDescription}
+//                 multiline
+//                 style={{ height: "30%" }}
+//               />
+//               <Spacer />
+//               <ThemeButton
+//                 onPress={pickFile}
+//                 style={{ width: "80%", marginLeft: "auto", marginRight: "auto" }}
+//               >
+//                 <ThemeText style={{color:"#fff"}}>{file ?shortenFileName(file.name) : "Pick File"}</ThemeText>
+//               </ThemeButton>
+//             </>
+//           )}
+
+//           {selectedType === "link" && (
+//             <>
+//               <InputTheme
+//                 placeholder="Description (optional)"
+//                 value={description}
+//                 onChangeText={setDescription}
+//                 multiline
+//                 style={{ height: "30%" }}
+//               />
+//               <Spacer />
+//               <InputTheme
+//                 placeholder="Paste File/Doc Link"
+//                 value={fileLink}
+//                 onChangeText={setFileLink}
+//               />
+//             </>
+//           )}
+//         </CardTheme>
+
+//         <Spacer height={16} />
+
+//       <ThemeButton 
+//   onPress={handleSubmit} 
+//   style={{ 
+//     alignItems: "center",
+//     // Button turns Gray when saving, Green when saved
+//     backgroundColor: status === "saved" ? "#10b981" : status === "saving" ? "#64748b" : colors.primary 
+//   }}
+//   disabled={status !== "idle"}
+// >
+//   <ThemeText style={{ color: "#fff", fontWeight: '600' }}>
+//     {renderButtonText()}
+//   </ThemeText>
+// </ThemeButton>
+
+//       </ThemeView>
+//       </Pressable>
+//                 </KeyBordAvoidingComponent>
+  
+//   );
+// }
+
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1, // <--- Add this to ensure it fills the screen
+//     width: '100%',
+//     justifyContent: "center",
+//     alignItems: "center",
+//   },
+//   card: {
+//     // width: "90%",
+//     // height: "70%",
+//     paddingVertical: 28,
+//     paddingHorizontal: 20,
+//     borderRadius: 26,
+//     // backgroundColor: "rgba(255,255,255,0.05)",
+//     // borderWidth: 1,
+//     // borderColor: "rgba(255,255,255,0.15)",
+//   },
+//   header: {
+//     flexDirection: "row",
+//     alignItems: "center",
+//   },
+//   headerTitle: {
+//     flex: 1,
+//     textAlign: "center",
+//     fontSize: 18,
+//     fontWeight: "600",
+//   },
+//   row: {
+//     width: "90%",
+//     flexDirection: "row",
+//     gap: 10,
+//     // overflow: "hidden",
+//     // marginVertical: 10,
+//     // marginHorizontal: 20,
+//     marginTop: 40,
+//   },
+//   typeBtn: {
+//     flex: 1,
+//     paddingVertical: 10,
+//     backgroundColor: "#444",
+//     borderRadius: 8,
+//   },
+//   typeBtnActive: {
+//     backgroundColor: colors.primary
+//   },
+//   btnContent: {
+//     flexDirection: "row",
+//     alignItems: "center",
+//     justifyContent: "center",
+//     gap: 3,
+//   },
+//   btnText: {
+//     fontSize: 10,
+//     color: "#fff",
+//   },
+// });
+
+
+
+
+
+
+// import {
+//   Keyboard,
+//   TouchableWithoutFeedback,
+//   Alert,
+//   View,
+//   StyleSheet,
+//   Pressable
+// } from "react-native";
+// import React, { useState, useCallback } from "react";
+// import ThemeView from "../../component/ThemeView";
+// import ThemeText from "../../component/ThemeText";
+// import ThemeButton from "../../component/ThemeButton";
+// import Spacer from "../../component/Spacer";
+// import InputTheme from "../../component/InputTheme";
+// import * as DocumentPicker from "expo-document-picker";
+// import { useBook } from "../../hook/useBook";
+// import { useRouter, useFocusEffect } from "expo-router";
+// import { Ionicons } from "@expo/vector-icons";
+// import { colors } from "../../constant/colors";
+// import KeyBordAvoidingComponent from "../../component/KeyBordAvoidingComponent";
+// import CardTheme from "../../component/CardTheme";
+// import { validateBookInput } from "../../utils/bookValidator";
+
+// // 1. Import your banner ad component safely
+// import { BannerAdComponent } from "../../component/AdsManager"; // <-- Double check this path matches your project path
+
+// export default function Create() {
+//   const [selectedType, setSelectedType] = useState("doc"); // default type
+//   const [title, setTitle] = useState("");
+//   const [author, setAuthor] = useState("");
+//   const [description, setDescription] = useState("");
+//   const [file, setFile] = useState(null);
+//   const [fileLink, setFileLink] = useState("");
+//   const [status, setStatus] = useState("idle"); // idle | uploading | error
+
+//   const { createBook } = useBook();
+//   const router = useRouter();
+
+//   useFocusEffect(
+//     useCallback(() => {
+//       setTitle("");
+//       setAuthor("");
+//       setDescription("");
+//       setFile(null);
+//       setFileLink("");
+//     }, [])
+//   );
+
+//   const cardTitle = () => {
+//     if (selectedType === "reading") return "Add Reading Material";
+//     if (selectedType === "link") return "Add New Link";
+//     return "Add Document";
+//   };
+
+//   const pickFile = async () => {
+//     const result = await DocumentPicker.getDocumentAsync({
+//       type: "*/*",
+//       copyToCacheDirectory: true,
+//     });
+//     if (!result.canceled) setFile(result.assets);
+//     console.log("File picked:", result);
+//   };
+
+//   const handleSubmit = async () => {
+//     const validationError = validateBookInput({ title, author, description, file, fileLink, selectedType });
+//     if (validationError) {
+//       return Alert.alert("Validation Error", validationError);
+//     }
+//     if (status !== "idle") return; // Prevent double submission
+//     setStatus("saving...");
+//     try {
+//       const ok = await createBook({
+//         title,
+//         author: selectedType !== "link" ? author : undefined,
+//         description,
+//         file: selectedType !== "link" ? file : undefined,
+//         fileLink: selectedType === "link" ? fileLink : undefined,
+//       });
+
+//       if (!ok) throw new Error(" upload failed");
+//       setStatus("saved");
+//       setTimeout(() => {
+//         setTitle("");
+//         setAuthor("");
+//         setDescription("");
+//         setFile(null);
+//         setFileLink("");
+//         setStatus("idle");
+//         router.replace("/book");
+//       }, 1500);
+//     } catch (err) {
+//       setStatus("idle");
+//       Alert.alert(err.response?.data?.message || err.message || "An error occurred while saving the book");
+//     }
+//   };
+
+//   const renderButtonText = () => {
+//     if (status === "saving...") return "Saving...";
+//     if (status === "saved") return "Upload complete 🎉";
+//     return "Save ";
+//   };
+
+//   const shortenFileName = (name, maxLength = 20) => {
+//     if (!name) return "";
+//     if (name.length <= maxLength) return name;
+//     const fileExt = name.split(".").pop();
+//     const baseName = name.substring(0, maxLength - fileExt.length - 4);
+//     return `${baseName}...${fileExt}`;
+//   };
+
+//   return (
+//     <KeyBordAvoidingComponent>
+//       <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
+//         <ThemeView style={styles.container} safe={true}>
+          
+//           {/* Main scrollable/interactive form content wrapper */}
+//           <View style={styles.formWrapper}>
+//             {/* Type Selector Buttons */}
+//             <View style={styles.row}>
+//               <ThemeButton
+//                 onPress={() => setSelectedType("reading")}
+//                 style={[styles.typeBtn, selectedType === "reading" && styles.typeBtnActive]}
+//               >
+//                 <View style={styles.btnContent}>
+//                   <Ionicons name="book-outline" size={16} color="#fff" />
+//                   <ThemeText style={styles.btnText}>Reading Book/Docs</ThemeText>
+//                 </View>
+//               </ThemeButton>
+
+//               <ThemeButton
+//                 onPress={() => setSelectedType("link")}
+//                 style={[styles.typeBtn, selectedType === "link" && styles.typeBtnActive]}
+//               >
+//                 <View style={styles.btnContent}>
+//                   <Ionicons name="link-outline" size={16} color="#fff" />
+//                   <ThemeText style={styles.btnText}>File/Doc Link</ThemeText>
+//                 </View>
+//               </ThemeButton>
+
+//               <ThemeButton
+//                 onPress={() => setSelectedType("doc")}
+//                 style={[styles.typeBtn, selectedType === "doc" && styles.typeBtnActive]}
+//               >
+//                 <View style={styles.btnContent}>
+//                   <Ionicons name="document-text-outline" size={16} color="#fff" />
+//                   <ThemeText style={styles.btnText}>File/Doc</ThemeText>
+//                 </View>
+//               </ThemeButton>
+//             </View>
+
+//             <Spacer />
+
+//             {/* Input Card */}
+//             <CardTheme style={styles.card}>
+//               <View style={styles.header}>
+//                 <Ionicons name="arrow-back" size={22} color="#fff" onPress={() => router.back()} />
+//                 <ThemeText style={styles.headerTitle}>{cardTitle()}</ThemeText>
+//                 <View style={{ width: 22 }} />
+//               </View>
+
+//               <Spacer height={20} />
+
+//               <InputTheme
+//                 placeholder="File Name/Title"
+//                 value={title}
+//                 onChangeText={setTitle}
+//               />
+//               <Spacer />
+
+//               {(selectedType === "doc" || selectedType === "reading") && (
+//                 <>
+//                   <InputTheme
+//                     placeholder="Author Name(owner name)"
+//                     value={author}
+//                     onChangeText={setAuthor}
+//                   />
+//                   <Spacer />
+//                   <InputTheme
+//                     placeholder="Description (optional)"
+//                     value={description}
+//                     onChangeText={setDescription}
+//                     multiline
+//                     style={{ height: 80 }} // Explicit height works much better for multiline across engines than a raw % inside flex wraps
+//                   />
+//                   <Spacer />
+//                   <ThemeButton
+//                     onPress={pickFile}
+//                     style={{ width: "80%", marginLeft: "auto", marginRight: "auto" }}
+//                   >
+//                     <ThemeText style={{ color: "#fff" }}>{file ? shortenFileName(file.name) : "Pick File"}</ThemeText>
+//                   </ThemeButton>
+//                 </>
+//               )}
+
+//               {selectedType === "link" && (
+//                 <>
+//                   <InputTheme
+//                     placeholder="Description (optional)"
+//                     value={description}
+//                     onChangeText={setDescription}
+//                     multiline
+//                     style={{ height: 80 }}
+//                   />
+//                   <Spacer />
+//                   <InputTheme
+//                     placeholder="Paste File/Doc Link"
+//                     value={fileLink}
+//                     onChangeText={setFileLink}
+//                   />
+//                 </>
+//               )}
+//             </CardTheme>
+
+//             <Spacer height={16} />
+
+//             <ThemeButton
+//               onPress={handleSubmit}
+//               style={{
+//                 alignItems: "center",
+//                 backgroundColor: status === "saved" ? "#10b981" : status === "saving..." ? "#64748b" : colors.primary
+//               }}
+//               disabled={status !== "idle"}
+//             >
+//               <ThemeText style={{ color: "#fff", fontWeight: '600' }}>
+//                 {renderButtonText()}
+//               </ThemeText>
+//             </ThemeButton>
+//           </View>
+
+//           {/* 2. Anchor the Banner ad directly below the form content wrapper */}
+//           <BannerAdComponent style={styles.bottomBanner} />
+
+//         </ThemeView>
+//       </Pressable>
+//     </KeyBordAvoidingComponent>
+//   );
+// }
+
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1,
+//     width: '100%',
+//     justifyContent: "space-between", // Pushes content up and the banner down nicely
+//     alignItems: "center",
+//   },
+//   formWrapper: {
+//     flex: 1,
+//     width: '100%',
+//     alignItems: 'center',
+//     justifyContent: 'center',
+//   },
+//   card: {
+//     paddingVertical: 28,
+//     paddingHorizontal: 20,
+//     borderRadius: 26,
+//     width: '90%', // Ensures it scales uniformly across screen sizes
+//   },
+//   header: {
+//     flexDirection: "row",
+//     alignItems: "center",
+//   },
+//   headerTitle: {
+//     flex: 1,
+//     textAlign: "center",
+//     fontSize: 18,
+//     fontWeight: "600",
+//   },
+//   row: {
+//     width: "90%",
+//     flexDirection: "row",
+//     gap: 10,
+//     marginTop: 20,
+//   },
+//   typeBtn: {
+//     flex: 1,
+//     paddingVertical: 10,
+//     backgroundColor: "#444",
+//     borderRadius: 8,
+//   },
+//   typeBtnActive: {
+//     backgroundColor: colors.primary
+//   },
+//   btnContent: {
+//     flexDirection: "row",
+//     alignItems: "center",
+//     justifyContent: "center",
+//     gap: 3,
+//   },
+//   btnText: {
+//     fontSize: 10,
+//     color: "#fff",
+//   },
+//   bottomBanner: {
+//     width: '100%',
+//     alignItems: 'center',
+//     paddingVertical: 4,
+//     backgroundColor: "transparent",
+//   }
+// });
+
+
+
+
 import {
   Keyboard,
-  TouchableWithoutFeedback,
   Alert,
   View,
   StyleSheet,
-  Pressable
+  Pressable,
 } from "react-native";
 import React, { useState, useCallback } from "react";
 import ThemeView from "../../component/ThemeView";
@@ -23,18 +626,24 @@ import KeyBordAvoidingComponent from "../../component/KeyBordAvoidingComponent";
 import CardTheme from "../../component/CardTheme";
 import { validateBookInput } from "../../utils/bookValidator";
 
+import Constants from "expo-constants";
+import { BannerAdComponent } from "../../component/AdsManager";
+
+
 export default function Create() {
-  const [selectedType, setSelectedType] = useState("doc"); // default type
+  const [selectedType, setSelectedType] = useState("doc");
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [description, setDescription] = useState("");
   const [file, setFile] = useState(null);
   const [fileLink, setFileLink] = useState("");
-  const [status, setStatus] = useState("idle"); // idle | uploading | error
-  
+  const [status, setStatus] = useState("idle");
 
   const { createBook } = useBook();
   const router = useRouter();
+
+  const isExpoGo =
+    Constants.executionEnvironment === "storeClient";
 
   useFocusEffect(
     useCallback(() => {
@@ -43,255 +652,397 @@ export default function Create() {
       setDescription("");
       setFile(null);
       setFileLink("");
+      setStatus("idle");
     }, [])
   );
-    const cardTitle=()=>{
-      if(selectedType==="reading") return "Add Reading Material";
-      if(selectedType==="link") return "Add New Link";
-      return "Add Document";
-    }
+
+  const cardTitle = () => {
+    if (selectedType === "reading") return "Add Reading Material";
+    if (selectedType === "link") return "Add New Link";
+    return "Add Document";
+  };
+
   const pickFile = async () => {
-    const result = await DocumentPicker.getDocumentAsync({
-      type: "*/*",
-      copyToCacheDirectory: true,
-    });
-    if (!result.canceled) setFile(result.assets[0]);
-    console.log("File picked:", result);
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "*/*",
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled) {
+        setFile(result.assets[0]);
+      }
+
+      console.log("File picked:", result);
+    } catch (error) {
+      console.log("Document picker error:", error);
+      Alert.alert("Error", "Failed to pick file");
+    }
   };
 
   const handleSubmit = async () => {
+    const validationError = validateBookInput({
+      title,
+      author,
+      description,
+      file,
+      fileLink,
+      selectedType,
+    });
 
-  
-    const validationError = validateBookInput({ title, author, description, file, fileLink, selectedType });
     if (validationError) {
       return Alert.alert("Validation Error", validationError);
     }
-if (status !== "idle") return; // Prevent double submission
-    setStatus("saving...");
+
+    if (status !== "idle") return;
+
+    setStatus("saving");
+
     try {
       const ok = await createBook({
         title,
-        author: selectedType !== "link" ? author : undefined,
+        author:
+          selectedType !== "link"
+            ? author
+            : undefined,
         description,
-        file: selectedType !== "link" ? file : undefined,
-        fileLink: selectedType === "link" ? fileLink : undefined,
+        file:
+          selectedType !== "link"
+            ? file
+            : undefined,
+        fileLink:
+          selectedType === "link"
+            ? fileLink
+            : undefined,
       });
 
-      if (!ok) throw new Error(" upload failed");
-      setStatus("saved");
-      setTimeout(() => {
+      if (!ok) {
+        throw new Error("Upload failed");
+      }
 
-      setTitle("");
-      setAuthor("");
-      setDescription("");
-      setFile(null);
-      setFileLink("");
-      setStatus("idle");
-      router.replace("/book");
+      setStatus("saved");
+
+      setTimeout(() => {
+        setTitle("");
+        setAuthor("");
+        setDescription("");
+        setFile(null);
+        setFileLink("");
+        setStatus("idle");
+
+        router.replace("/book");
       }, 1500);
     } catch (err) {
       setStatus("idle");
-      Alert.alert( err.response?.data?.message || err.message || "An error occurred while saving the book");
+
+      Alert.alert(
+        "Error",
+        err?.response?.data?.message ||
+          err?.message ||
+          "An error occurred while saving"
+      );
     }
   };
 
   const renderButtonText = () => {
-  if (status === "saving...") return "Saving...";
-  if (status === "saved") return "Upload complete 🎉";
-  return "Save ";
-};
-const shortenFileName = (name, maxLength = 20) => {
-  if(!name) return "";
-  if(name.length <= maxLength) return name;
-  const fileExt=name.split(".").pop();
-  const baseName=name.substring(0,maxLength-fileExt.length-4);
-  return `${baseName}...${fileExt}`;
+    if (status === "saving") return "Saving...";
+    if (status === "saved") return "Upload Complete 🎉";
+    return "Save";
+  };
 
-}
+  const shortenFileName = (
+    name,
+    maxLength = 20
+  ) => {
+    if (!name) return "";
+
+    if (name.length <= maxLength) {
+      return name;
+    }
+
+    const ext = name.split(".").pop();
+
+    const base = name.substring(
+      0,
+      maxLength - ext.length - 4
+    );
+
+    return `${base}...${ext}`;
+  };
 
   return (
-      <KeyBordAvoidingComponent>
-         <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
+    <KeyBordAvoidingComponent>
+      <Pressable
+        style={{ flex: 1 }}
+        onPress={Keyboard.dismiss}
+      >
+        <ThemeView style={styles.container} safe>
+          <View style={styles.formWrapper}>
+            {/* Type Buttons */}
 
-      <ThemeView style={styles.container} safe={true}>
+            <View style={styles.row}>
+              <ThemeButton
+                onPress={() =>
+                  setSelectedType("reading")
+                }
+                style={[
+                  styles.typeBtn,
+                  selectedType === "reading" &&
+                    styles.typeBtnActive,
+                ]}
+              >
+                <View style={styles.btnContent}>
+                  <Ionicons
+                    name="book-outline"
+                    size={16}
+                    color="#fff"
+                  />
+                  <ThemeText style={styles.btnText}>
+                    Reading
+                  </ThemeText>
+                </View>
+              </ThemeButton>
 
-        {/* Type Selector Buttons */}
-        <View style={styles.row}>
-          <ThemeButton
-            onPress={() => setSelectedType("reading")}
-            style={[styles.typeBtn,  selectedType === "reading" && styles.typeBtnActive]}
-          >
-            <View style={styles.btnContent}>
-              <Ionicons name="book-outline" size={16} color="#fff" />
-              <ThemeText style={styles.btnText}>Reading Book/Docs</ThemeText>
+              <ThemeButton
+                onPress={() =>
+                  setSelectedType("link")
+                }
+                style={[
+                  styles.typeBtn,
+                  selectedType === "link" &&
+                    styles.typeBtnActive,
+                ]}
+              >
+                <View style={styles.btnContent}>
+                  <Ionicons
+                    name="link-outline"
+                    size={16}
+                    color="#fff"
+                  />
+                  <ThemeText style={styles.btnText}>
+                    Link
+                  </ThemeText>
+                </View>
+              </ThemeButton>
+
+              <ThemeButton
+                onPress={() =>
+                  setSelectedType("doc")
+                }
+                style={[
+                  styles.typeBtn,
+                  selectedType === "doc" &&
+                    styles.typeBtnActive,
+                ]}
+              >
+                <View style={styles.btnContent}>
+                  <Ionicons
+                    name="document-text-outline"
+                    size={16}
+                    color="#fff"
+                  />
+                  <ThemeText style={styles.btnText}>
+                    Document
+                  </ThemeText>
+                </View>
+              </ThemeButton>
             </View>
-          </ThemeButton>
 
-          <ThemeButton
-            onPress={() => setSelectedType("link")}
-            style={[styles.typeBtn, selectedType === "link" && styles.typeBtnActive]}
-          >
-            <View style={styles.btnContent}>
-              <Ionicons name="link-outline" size={16} color="#fff" />
-              <ThemeText style={styles.btnText}>File/Doc Link</ThemeText>
-            </View>
-          </ThemeButton>
+            <Spacer />
 
-          <ThemeButton
-            onPress={() => setSelectedType("doc")}
-            style={[styles.typeBtn, selectedType === "doc" && styles.typeBtnActive]}
-          >
-            <View style={styles.btnContent}>
-              <Ionicons name="document-text-outline" size={16} color="#fff" />
-              <ThemeText style={styles.btnText}>File/Doc</ThemeText>
-            </View>
-          </ThemeButton>
-        </View>
+            <CardTheme style={styles.card}>
+              <View style={styles.header}>
+                <Ionicons
+                  name="arrow-back"
+                  size={22}
+                  color="#fff"
+                  onPress={() => router.back()}
+                />
 
-        <Spacer />
+                <ThemeText style={styles.headerTitle}>
+                  {cardTitle()}
+                </ThemeText>
 
-        {/* Input Card */}
-        <CardTheme style={styles.card}>
-          <View style={styles.header}>
-            <Ionicons name="arrow-back" size={22} color="#fff" onPress={() => router.back()} />
-            <ThemeText style={styles.headerTitle}>
-              {cardTitle()}
-          
-           </ThemeText>
-            <View style={{ width: 22 }} />
+                <View style={{ width: 22 }} />
+              </View>
+
+              <Spacer height={20} />
+
+              <InputTheme
+                placeholder="File Name / Title"
+                value={title}
+                onChangeText={setTitle}
+              />
+
+              <Spacer />
+
+              {(selectedType === "doc" ||
+                selectedType === "reading") && (
+                <>
+                  <InputTheme
+                    placeholder="Author Name"
+                    value={author}
+                    onChangeText={setAuthor}
+                  />
+
+                  <Spacer />
+
+                  <InputTheme
+                    placeholder="Description (optional)"
+                    value={description}
+                    onChangeText={setDescription}
+                    multiline
+                    style={{ height: 80 }}
+                  />
+
+                  <Spacer />
+
+                  <ThemeButton
+                    onPress={pickFile}
+                    style={styles.pickFileButton}
+                  >
+                    <ThemeText
+                      style={{ color: "#fff" }}
+                    >
+                      {file
+                        ? shortenFileName(
+                            file.name
+                          )
+                        : "Pick File"}
+                    </ThemeText>
+                  </ThemeButton>
+                </>
+              )}
+
+              {selectedType === "link" && (
+                <>
+                  <InputTheme
+                    placeholder="Description (optional)"
+                    value={description}
+                    onChangeText={setDescription}
+                    multiline
+                    style={{ height: 80 }}
+                  />
+
+                  <Spacer />
+
+                  <InputTheme
+                    placeholder="Paste File Link"
+                    value={fileLink}
+                    onChangeText={setFileLink}
+                  />
+                </>
+              )}
+            </CardTheme>
+
+            <Spacer height={16} />
+
+            <ThemeButton
+              onPress={handleSubmit}
+              disabled={status === "saving"}
+              style={{
+                alignItems: "center",
+                backgroundColor:
+                  status === "saved"
+                    ? "#10b981"
+                    : status === "saving"
+                    ? colors.primary
+                    : colors.primary,
+              }}
+            >
+              <ThemeText
+                style={{
+                  color: "#fff",
+                  fontWeight: "600",
+                }}
+              >
+                {renderButtonText()}
+              </ThemeText>
+            </ThemeButton>
           </View>
 
-          <Spacer height={20} />
-
-          {/* Common Inputs */}
-          <InputTheme
-            placeholder="File Name/Title"
-            value={title}
-            onChangeText={setTitle}
-          />
-          <Spacer />
-
-
-          {(selectedType === "doc" || selectedType === "reading" ) && (
-            <>
-              <InputTheme
-                placeholder="Author Name(owner name)"
-                value={author}
-                onChangeText={setAuthor}
-              />
-              <Spacer />
-              <InputTheme
-                placeholder="Description (optional)"
-                value={description}
-                onChangeText={setDescription}
-                multiline
-                style={{ height: "30%" }}
-              />
-              <Spacer />
-              <ThemeButton
-                onPress={pickFile}
-                style={{ width: "80%", marginLeft: "auto", marginRight: "auto" }}
-              >
-                <ThemeText style={{color:"#fff"}}>{file ?shortenFileName(file.name) : "Pick File"}</ThemeText>
-              </ThemeButton>
-            </>
+          {!isExpoGo && (
+            <View style={styles.bottomBanner}>
+              <BannerAdComponent />
+            </View>
           )}
-
-          {selectedType === "link" && (
-            <>
-              <InputTheme
-                placeholder="Description (optional)"
-                value={description}
-                onChangeText={setDescription}
-                multiline
-                style={{ height: "30%" }}
-              />
-              <Spacer />
-              <InputTheme
-                placeholder="Paste File/Doc Link"
-                value={fileLink}
-                onChangeText={setFileLink}
-              />
-            </>
-          )}
-        </CardTheme>
-
-        <Spacer height={16} />
-
-      <ThemeButton 
-  onPress={handleSubmit} 
-  style={{ 
-    alignItems: "center",
-    // Button turns Gray when saving, Green when saved
-    backgroundColor: status === "saved" ? "#10b981" : status === "saving" ? "#64748b" : colors.primary 
-  }}
-  disabled={status !== "idle"}
->
-  <ThemeText style={{ color: "#fff", fontWeight: '600' }}>
-    {renderButtonText()}
-  </ThemeText>
-</ThemeButton>
-
-      </ThemeView>
+        </ThemeView>
       </Pressable>
-                </KeyBordAvoidingComponent>
-  
+    </KeyBordAvoidingComponent>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, // <--- Add this to ensure it fills the screen
-    width: '100%',
+    flex: 1,
+    width: "100%",
+    alignItems: "center",
+  },
+
+  formWrapper: {
+    flex: 1,
+    width: "100%",
     justifyContent: "center",
     alignItems: "center",
   },
+
   card: {
-    // width: "90%",
-    // height: "70%",
+    width: "90%",
     paddingVertical: 28,
     paddingHorizontal: 20,
     borderRadius: 26,
-    // backgroundColor: "rgba(255,255,255,0.05)",
-    // borderWidth: 1,
-    // borderColor: "rgba(255,255,255,0.15)",
   },
+
   header: {
     flexDirection: "row",
     alignItems: "center",
   },
+
   headerTitle: {
     flex: 1,
     textAlign: "center",
     fontSize: 18,
     fontWeight: "600",
   },
+
   row: {
     width: "90%",
     flexDirection: "row",
     gap: 10,
-    // overflow: "hidden",
-    // marginVertical: 10,
-    // marginHorizontal: 20,
     marginTop: 40,
   },
+
   typeBtn: {
     flex: 1,
     paddingVertical: 10,
     backgroundColor: "#444",
     borderRadius: 8,
   },
+
   typeBtnActive: {
-    backgroundColor: colors.primary
+    backgroundColor: colors.primary,
   },
+
   btnContent: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "center",
+    alignItems: "center",
     gap: 3,
   },
+
   btnText: {
     fontSize: 10,
     color: "#fff",
+  },
+
+  pickFileButton: {
+    width: "80%",
+    alignSelf: "center",
+  },
+
+  bottomBanner: {
+    width: "100%",
+    alignItems: "center",
+    paddingVertical: 5,
   },
 });

@@ -1,6 +1,10 @@
 const textRegex = /^[A-Za-z0-9\s.,'-]+$/;
 const descriptionRegex = /^[A-Za-z0-9\s.,'"\-?!()]{0,2000}$/;
 
+const notificationMessageRegex =
+/^[A-Za-z0-9\s.,:'"?!()@&\/\-:]{0,500}$/;
+
+// const notificationTextRegex = /^[A-Za-z0-9\s.,'"\-?!()@:/]*$/;
 
 const allowedMimeTypes = [
   "application/pdf",
@@ -73,4 +77,31 @@ export const validateBookInput = ({
   }
 
   return null; // ✅ valid
+};
+
+
+
+
+
+export const validateNotificationMessage = (message) => {
+  if (message == null || message.trim() === "") return null;
+
+  if (typeof message !== "string") {
+    return "Notification message must be text";
+  }
+
+  const trimmed = message.trim();
+
+  if (trimmed.length > 500) {
+    return "Notification message cannot exceed 500 characters";
+  }
+
+  // allow real-world notification characters
+  const regex = /^[A-Za-z0-9\s.,:'"?!()@&\/\-:]+$/;
+
+  if (!regex.test(trimmed)) {
+    return "Notification message contains invalid characters";
+  }
+
+  return null;
 };
