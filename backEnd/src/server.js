@@ -15,7 +15,7 @@ import  adminRoute from "./routes/adminRoute/adminRoute.js"
 // import { reminderWorker } from "./services/reminderWorker.js";
 import { reminderWorker  } from "./services/reminderWorker.js";
 import subscriptionRoutes from "./routes/subscriptionRoutes.js";
-import adminTimetableRoute from "./routes/adminRoute/adminTimetableRoute.js";
+import adminTimetableRoute from "./routes/adminRoute/Admintimetableroute.js";
 
 import adminSubscriptionRoute from "./routes/adminRoute/adminSubscriptionRoute.js";
  
