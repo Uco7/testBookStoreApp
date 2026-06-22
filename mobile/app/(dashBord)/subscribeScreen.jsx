@@ -45,7 +45,7 @@ const PLANS = {
   monthly: {
     id:          "monthly",
     label:       "Monthly",
-    naira:       200,
+    naira:       1500,
     get dollar() { return (this.naira / USD_RATE).toFixed(2); },
     period:      "per month",
     badge:       null,

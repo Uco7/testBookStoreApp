@@ -155,7 +155,7 @@ const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
 // by React Native/Expo automatically and is always `false` in release
 // builds, so this can never leak into production no matter what this
 // flag is left set to.
-const DEV_FORCE_PAST_NINETY_DAYS = true;
+const DEV_FORCE_PAST_NINETY_DAYS = false;
 
 const isPastNinetyDayMark = (user) => {
   if (__DEV__ && DEV_FORCE_PAST_NINETY_DAYS) return true;
