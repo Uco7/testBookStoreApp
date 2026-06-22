@@ -19,8 +19,8 @@ export const initiateSubscription = async (req, res) => {
 
     let amount = 0;
 
-    if (plan === "monthly") amount = 1500;
-    else if (plan === "yearly") amount = 15000;
+    if (plan === "monthly") amount = 200;
+    else if (plan === "yearly") amount = 300;
     else return res.status(400).json({ message: "Invalid plan" });
 
     const reference = `sub_${crypto.randomBytes(12).toString("hex")}`;
