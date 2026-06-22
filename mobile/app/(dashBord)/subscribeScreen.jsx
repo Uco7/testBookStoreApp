@@ -38,7 +38,7 @@ import { backendUrl_ngrok,backendDomainUrl } from "../../utils/config/appUrl";
 // ─────────────────────────────────────────────────────────────────────────────
 // CONFIG
 // ─────────────────────────────────────────────────────────────────────────────
-const APP_URL  = backendUrl_ngrok
+const APP_URL  = backendDomainUrl
 const USD_RATE = 1600;
 
 const PLANS = {
