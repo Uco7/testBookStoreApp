@@ -9,12 +9,12 @@ import {backendUrl_ngrok,backendDomainUrl} from "../utils/config/appUrl"
 
 
 // Base URL
-const APPURl =backendUrl_ngrok;
+const APPURl =backendDomainUrl
 // const APPURl ="https://testbookstoreapp-backend-my8t.onrender.com";
 
 export const BookContext = createContext();
 
-export function BookProvider({ children }) {
+export function BookProvider({ children }) {   
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
