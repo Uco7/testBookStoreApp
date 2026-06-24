@@ -827,6 +827,8 @@ import CardTheme from "../../component/CardTheme";
 import { useUser } from "../../hook/useUser";
 import { ActivityIndicator } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Link } from "expo-router";
+
 import {
   saveBookOffline,
   getOfflineBooks,
@@ -837,7 +839,9 @@ import { useAdGate, RewardedAdModal,BannerAdComponent } from "../../component/Ad
 
 export default function Book() {
   const { books, fetchBooks, deleteBook } = useBook();
-  const { authReady } = useUser();
+  // const { authReady } = useUser();
+      const { user, authReady, logOut } = useUser();
+  
   const router = useRouter();
   const [bookLoading, setBookLoading] = useState(false);
   const [selectedType, setSelectedType] = useState("All");
@@ -857,6 +861,32 @@ export default function Book() {
   // Cooldown setting: 3 minutes (180,000 milliseconds)
   // Keeps the user experience premium, respectful, and uncluttered
   const AD_COOLDOWN_MS = 180000; 
+   if (!authReady) {
+      return (
+        <ThemeView style={styles.centered}>
+          <ActivityIndicator
+            size={20}
+            color="#4f46e5"
+            style={{ flex: 1, alignItems: "center" }}
+          />
+        </ThemeView>
+      );
+    }
+  
+      if (!user) {
+        return (
+          <ThemeView style={styles.centered}>
+            <Ionicons name="person-circle-outline" size={64} color="#999" />
+            <Spacer />
+            <ThemeText>No user logged in</ThemeText>
+            <Spacer />
+            <Link href="/login">
+              <ThemeText style={styles.link}>Go to Login</ThemeText>
+            </Link>
+          </ThemeView>
+        );
+      }
+
 
   const handleRefresh = async () => {
     try {
@@ -1319,6 +1349,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     width: "80%",
     alignSelf: "center",
+  },
+   centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
   },
   searchInput: { flex: 1, marginLeft: 2 },
   row: {

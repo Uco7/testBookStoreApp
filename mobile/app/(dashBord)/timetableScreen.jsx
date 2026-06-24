@@ -14,6 +14,8 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Menu, Divider } from "react-native-paper";
 import * as FileSystem from "expo-file-system";
+import { Link } from "expo-router";
+
 
 import ThemeView from "../../component/ThemeView";
 import ThemeText from "../../component/ThemeText";
@@ -36,6 +38,9 @@ import {
 } from "../../utils/offlinebookServices/offlineTimetableService";
 
 import { useRewardAdsEnabled } from "../../hook/useRewardAdsEnabled";
+import { useUser } from "../../hook/useUser";
+import Spacer from "../../component/Spacer";
+
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const T = {
@@ -121,7 +126,34 @@ const StatCell = ({ icon, value, flex }) => (
 // ─────────────────────────────────────────────────────────────────────────────
 export default function TimetableScreen() {
   const router = useRouter();
+      const { user, authReady, logOut } = useUser();
+  
   const rewardAdsEnabled = useRewardAdsEnabled();
+   if (!authReady) {
+    return (
+      <ThemeView style={styles.centered}>
+        <ActivityIndicator
+          size={20}
+          color="#4f46e5"
+          style={{ flex: 1, alignItems: "center" }}
+        />
+      </ThemeView>
+    );
+  }
+
+    if (!user) {
+      return (
+        <ThemeView style={styles.centered}>
+          <Ionicons name="person-circle-outline" size={64} color="#999" />
+          <Spacer />
+          <ThemeText>No user logged in</ThemeText>
+          <Spacer />
+          <Link href="/login">
+            <ThemeText style={styles.link}>Go to Login</ThemeText>
+          </Link>
+        </ThemeView>
+      );
+    }
   const runWithOptionalAd = (callback, options = {}) => {
   if (!rewardAdsEnabled) {
     return callback();
@@ -731,6 +763,12 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
   },
   chipText: {
     fontSize: 11,

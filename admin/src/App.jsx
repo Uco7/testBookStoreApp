@@ -18,7 +18,7 @@ function App() {
             <Router>
 
             <Routes>
-                <Route path='/' element={<Dashbord />} />  
+                <Route path='/admin/dasbord-page' element={<Dashbord />} />  
             
                 <Route path='/users' element={<Users />} /> 
                 
@@ -29,7 +29,7 @@ function App() {
                 <Route path='/users/subscribed-users' element={<SubscribedUsers/>} /> 
                 <Route path='/users/users-activities/page' element={<UsersActivities/>} /> 
 
-                <Route path='/register' element={<AdminAuth />} /> 
+                <Route path='/admin/auth-page' element={<AdminAuth />} /> 
                 
                 
             </Routes>

@@ -8,9 +8,8 @@ import { syncPushToken } from "../utils/syncPushToken";
 
 import axios from "axios";
 
-// const APP_URL ="https://0e22-102-90-96-16.ngrok-free.app";
 const APPURL =backendDomainUrl
-// const APP_URL ="https://testbookstoreapp-backend-my8t.onrender.com";
+// const APPURL =backendUrl_ngrok
 const API_TIMEOUT = 10000;
 
 export const UserContext = createContext();

@@ -439,12 +439,12 @@ const totalUploadedItems = Array.isArray(books) ? books.length : 0;
             </div>
             <div className="sideBar-navigation-item-wraper-2">
 
-            <div className='sideBar-item'> <Link to=""><span><MdSpaceDashboard /> </span> Dashboard</Link></div>
+            <div className='sideBar-item'> <Link to="/admin/dasbord-page"><span><MdSpaceDashboard /> </span> Dashboard</Link></div>
             <div className='sideBar-item'> <Link to="/users"><span><FaUserFriends /> </span> Users</Link></div>
             <div className='sideBar-item'> <Link to="/users/uploaded-items"><span><FaCloudUploadAlt /> </span> Uploaded Items</Link></div>
             <div className='sideBar-item'> <Link to="/users/saved-timetable"><span><IoIosAlarm /> </span> Timetables</Link></div>
             <div className='sideBar-item'> <Link to="/users/subscribed-users"><span><IoIosAlarm /> </span> Subscribed Users</Link></div>
-            <div className='sideBar-item'> <Link to="/register"><span><IoIosAlarm /> </span> admin register</Link></div>
+            <div className='sideBar-item'> <Link to="/admin/auth-page"><span><IoIosAlarm /> </span> admin register</Link></div>
             <div className='sideBar-item'> <Link to="/users/users-activities/page"><span><IoIosAlarm /> </span> Users Activities/Stats</Link></div>
             {/* <hr /> */}
             <div className="notice-wrapper">

@@ -70,6 +70,7 @@ export default function DashBordLayout() {
         <Tabs.Screen   name="subscribeScreen" options={{ href: null }} />
         <Tabs.Screen   name="payment-success" options={{ href: null }} />
         <Tabs.Screen   name="transactionscreen" options={{ href: null }} />
+        {/* <Tabs.Screen   name="/timetable/detail" options={{ href: null }} /> */}
       </Tabs>
     </BookProvider>
   );

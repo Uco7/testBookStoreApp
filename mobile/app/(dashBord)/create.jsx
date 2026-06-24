@@ -628,6 +628,10 @@ import { validateBookInput } from "../../utils/bookValidator";
 
 import Constants from "expo-constants";
 import { BannerAdComponent } from "../../component/AdsManager";
+import { useUser } from "../../hook/useUser";
+import { Link } from "expo-router";
+
+
 
 
 export default function Create() {
@@ -638,6 +642,8 @@ export default function Create() {
   const [file, setFile] = useState(null);
   const [fileLink, setFileLink] = useState("");
   const [status, setStatus] = useState("idle");
+    const { user, authReady, logOut } = useUser();
+  
 
   const { createBook } = useBook();
   const router = useRouter();
@@ -661,7 +667,31 @@ export default function Create() {
     if (selectedType === "link") return "Add New Link";
     return "Add Document";
   };
+    if (!authReady) {
+    return (
+      <ThemeView style={styles.centered}>
+        <ActivityIndicator
+          size={20}
+          color="#4f46e5"
+          style={{ flex: 1, alignItems: "center" }}
+        />
+      </ThemeView>
+    );
+  }
 
+    if (!user) {
+      return (
+        <ThemeView style={styles.centered}>
+          <Ionicons name="person-circle-outline" size={64} color="#999" />
+          <Spacer />
+          <ThemeText>No user logged in</ThemeText>
+          <Spacer />
+          <Link href="/login">
+            <ThemeText style={styles.link}>Go to Login</ThemeText>
+          </Link>
+        </ThemeView>
+      );
+    }
   const pickFile = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
@@ -986,6 +1016,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
+   centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
   card: {
     width: "90%",
     paddingVertical: 28,
