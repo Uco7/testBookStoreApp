@@ -31,9 +31,9 @@
 
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { backendUrl_ngrok } from "./config/appUrl";
+import { backendUrl_ngrok,backendDomainUrl } from "./config/appUrl";
 
-const APPURL = backendUrl_ngrok;
+const APPURL =backendDomainUrl
 
 export async function syncPushToken(pushToken) {
   try {
