@@ -4,7 +4,7 @@ import { FaArrowRight } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useAdminTimetables } from "../context/Admintimetablecontext";
 
-export const SavedTImetable = () => {
+export default function SavedTImetable  ()  {
   const {
     timetables,
     loading,

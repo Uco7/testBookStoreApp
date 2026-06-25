@@ -7,10 +7,11 @@ import Users from './components/Users'
 import UploadedItems from './components/UploadedItems'
 import Reminders from './components/Reminders'
 import CreateNotice from './components/CreateNotice'
-import AdminAuth from './components/authcomponent/register'
-import { SavedTImetable } from './components/SavedTImetable'
+import AdminAuth from './components/authcomponent/adminAuth'
+import  SavedTImetable  from './components/SavedTImetable'
 import SubscribedUsers from './components/SubscribedUsers'
 import UsersActivities from './components/UsersActivities'
+import AdminProtectedRoute from './components/authcomponent/Adminprotectedroute'
 
 function App() {
     return (
@@ -18,7 +19,13 @@ function App() {
             <Router>
 
             <Routes>
-                <Route path='/admin/dasbord-page' element={<Dashbord />} />  
+                <Route path='/admin/dasbord-page' element={
+                    <AdminProtectedRoute>
+
+                    <Dashbord />
+                    </AdminProtectedRoute>
+                    
+                    } />  
             
                 <Route path='/users' element={<Users />} /> 
                 
@@ -29,7 +36,7 @@ function App() {
                 <Route path='/users/subscribed-users' element={<SubscribedUsers/>} /> 
                 <Route path='/users/users-activities/page' element={<UsersActivities/>} /> 
 
-                <Route path='/admin/auth-page' element={<AdminAuth />} /> 
+                <Route path='/' element={<AdminAuth />} /> 
                 
                 
             </Routes>
