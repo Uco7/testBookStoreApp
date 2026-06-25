@@ -145,6 +145,7 @@ export const registerAdmin = async (req, res) => {
     // logs are frequently shipped to third-party services, retained
     // far longer than intended, or accessible to more people than the
     // database itself.
+    console.log("req body",req.body);
     const isSecretMatch = adminSecretCode === envSecret;
 
     // 1. Verify administrative token from environment variables
