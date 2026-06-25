@@ -758,7 +758,7 @@ export default function Dashbord() {
 
     const handleLogout = () => {
         logout();
-        navigate('/admin/auth-page');
+        navigate('/');
     };
 
     // Safely pull the administrative name out of the context data stream
