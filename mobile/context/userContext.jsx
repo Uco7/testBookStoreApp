@@ -2,13 +2,13 @@
 
 import { createContext, useEffect, useRef, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {backendUrl_ngrok,backendDomainUrl} from "../utils/config/appUrl"
+import {appUrl} from "../utils/config/appUrl"
 import { syncPushToken } from "../utils/syncPushToken";
 
 
 import axios from "axios";
 
-const APPURL =backendDomainUrl
+const APPURL =appUrl
 // const APPURL =backendUrl_ngrok
 const API_TIMEOUT = 10000;
 

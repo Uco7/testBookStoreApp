@@ -1350,6 +1350,10 @@ const styles = StyleSheet.create({
     width: "80%",
     alignSelf: "center",
   },
+   link: {
+    color: "#4f46e5",
+    fontWeight: "500",
+  },
    centered: {
     flex: 1,
     justifyContent: "center",

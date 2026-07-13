@@ -774,6 +774,8 @@ export default function TimetableDetailScreen() {
           reminderTime: timetable.reminderTime,
           reminderType: timetable.reminderType,
           studyDays: timetable.studyDays,
+            noticeCount: timetable.noticeCount,        // ← added
+
           notificationMessage: timetable.notificationMessage,
           planType: timetable.planType,
           bookTitle: timetable.bookId?.title || "Study Reminder",

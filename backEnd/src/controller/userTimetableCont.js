@@ -1,7 +1,7 @@
 import UserTimetable from "../models/userTimetable.js";
 import User from "../models/user.js";
 import Book from "../models/book.js";
-import { scheduleTimetableJobs } from "../services/scheduleTimetableJobs.js";
+import { scheduleTimetableJobs,cancelTimetableJobs } from "../services/scheduleTimetableJobs.js";
 import mongoose from "mongoose";
 import sanitizeHtml from "sanitize-html";
 
@@ -241,6 +241,8 @@ if (trimmed && trimmed.length > 250) {
     // Include bonus/phase info so the client can update its UI immediately
     res.status(201).json({
       message:   "Timetable created",
+        bookTitle: book.title,          // ← added
+
       timetable,
       accessInfo: {
         phase,
@@ -374,6 +376,22 @@ export const getTimetableById = async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 // DELETE TIMETABLE
 // ─────────────────────────────────────────────────────────────────────────────
+// export const deleteTimetable = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+
+//     const timetable = await UserTimetable.findOneAndDelete({
+//       _id: id,
+//       userId: req.user.id,
+//     });
+
+//     if (!timetable) return res.status(404).json({ message: "Not found" });
+
+//     return res.json({ message: "Timetable deleted successfully" });
+//   } catch (err) {
+//     return res.status(500).json({ message: err.message });
+//   }
+// };
 export const deleteTimetable = async (req, res) => {
   try {
     const { id } = req.params;
@@ -385,14 +403,51 @@ export const deleteTimetable = async (req, res) => {
 
     if (!timetable) return res.status(404).json({ message: "Not found" });
 
+    await cancelTimetableJobs(id);
+
     return res.json({ message: "Timetable deleted successfully" });
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
 };
 
+
 // ─────────────────────────────────────────────────────────────────────────────
 // STOP TIMETABLE
+// ─────────────────────────────────────────────────────────────────────────────
+// export const stopTimetable = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+
+//     const timetable = await UserTimetable.findOne({ _id: id, userId: req.user.id });
+//     if (!timetable) return res.status(404).json({ message: "Not found or unauthorized" });
+
+//     timetable.isActive = false;
+
+//     if (timetable.jobIds?.length) {
+//       for (const jobId of timetable.jobIds) {
+//         try {
+//           const job = await reminderQueue.getJob(jobId);
+//           if (job) await job.remove();
+//         } catch (e) {
+//           console.log("Job remove error:", e.message);
+//         }
+//       }
+//     }
+
+//     timetable.jobIds                = [];
+//     timetable.deviceScheduleVersion = (timetable.deviceScheduleVersion || 1) + 1;
+//     timetable.lastSyncedAt          = new Date();
+//     timetable.localAlarmPayload     = null;
+
+//     await timetable.save();
+
+//     return res.json({ message: "Timetable stopped successfully", timetable });
+//   } catch (err) {
+//     return res.status(500).json({ message: err.message });
+//   }
+// };
+
 // ─────────────────────────────────────────────────────────────────────────────
 export const stopTimetable = async (req, res) => {
   try {
@@ -403,16 +458,7 @@ export const stopTimetable = async (req, res) => {
 
     timetable.isActive = false;
 
-    if (timetable.jobIds?.length) {
-      for (const jobId of timetable.jobIds) {
-        try {
-          const job = await reminderQueue.getJob(jobId);
-          if (job) await job.remove();
-        } catch (e) {
-          console.log("Job remove error:", e.message);
-        }
-      }
-    }
+    await cancelTimetableJobs(id);
 
     timetable.jobIds                = [];
     timetable.deviceScheduleVersion = (timetable.deviceScheduleVersion || 1) + 1;
@@ -426,6 +472,7 @@ export const stopTimetable = async (req, res) => {
     return res.status(500).json({ message: err.message });
   }
 };
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // REACTIVATE TIMETABLE
@@ -468,7 +515,9 @@ export const reactivateTimetable = async (req, res) => {
     timetable.jobIds = jobIds;
     await timetable.save();
 
-    return res.json({ message: "Timetable reactivated", timetable });
+    return res.json({ message: "Timetable reactivated",
+        bookTitle: book.title,          // ← added
+      timetable });
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }

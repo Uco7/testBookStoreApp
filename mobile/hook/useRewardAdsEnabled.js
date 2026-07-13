@@ -600,6 +600,15 @@ export const AdGateProvider = ({ children }) => {
   // an old, superseded ad instance can never clobber the current one or
   // trigger a duplicate reload. This stops back-to-back / racing ad
   // requests — the kind of irregular pattern AdMob's invalid-traffic
+  useEffect(() => {
+  console.log("===== Ad State =====");
+  console.log("User:", user);
+  console.log("Premium:", isPremium);
+  console.log("Past 90 Days:", pastNinetyDays);
+  console.log("Ads Eligible:", adsEligible);
+  console.log("Loaded:", isLoaded);
+  console.log("====================");
+}, [user, isPremium, pastNinetyDays, adsEligible, isLoaded]);
   // detection flags.
   const adInstance = useRef(null);
   const nextAction = useRef(() => {});

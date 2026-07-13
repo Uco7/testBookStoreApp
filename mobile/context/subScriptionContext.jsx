@@ -433,10 +433,10 @@ import React, {
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import { backendUrl_ngrok,backendDomainUrl } from "../utils/config/appUrl";
+import { appUrl } from "../utils/config/appUrl";
 
 // const APP_URL = backendUrl_ngrok;
-const APP_URL = backendDomainUrl
+const APP_URL = appUrl
 
 export const SubscriptionContext = createContext(null);
 

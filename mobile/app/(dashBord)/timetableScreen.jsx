@@ -16,7 +16,6 @@ import { Menu, Divider } from "react-native-paper";
 import * as FileSystem from "expo-file-system";
 import { Link } from "expo-router";
 
-
 import ThemeView from "../../component/ThemeView";
 import ThemeText from "../../component/ThemeText";
 import ThemeButton from "../../component/ThemeButton";
@@ -30,6 +29,7 @@ import {
 } from "../../component/AdsManager";
 
 import { colors } from "../../constant/colors";
+import { useTheme } from "../../context/ThemeContext";
 import { useTimetable } from "../../hook/useTimeTable";
 import {
   saveTimetableOffline,
@@ -41,52 +41,18 @@ import { useRewardAdsEnabled } from "../../hook/useRewardAdsEnabled";
 import { useUser } from "../../hook/useUser";
 import Spacer from "../../component/Spacer";
 
-
-// ─── Design tokens ────────────────────────────────────────────────────────────
-const T = {
-  // Surfaces
-  bg: "#F7F8FA",
-  card: "#FFFFFF",
-  cardBorder: "rgba(0,0,0,0.06)",
-
-  // Primary
-  primary: colors.primary,
-  primaryLight: `${colors.primary}18`,
-
-  // Status
-  activeGreen: "#16a34a",
-  activeGreenBg: "#DCFCE7",
-  stoppedGray: "#6B7280",
-  stoppedGrayBg: "#F3F4F6",
-
-  // Danger
-  danger: "#EF4444",
-  dangerBg: "#FEF2F2",
-
-  // Warning (saving)
-  amber: "#D97706",
-
-  // Text
-  textPrimary: "#111827",
-  textSecondary: "#6B7280",
-  textMuted: "#9CA3AF",
-
-  // Divider
-  divider: "#E5E7EB",
-
-  // Radius
-  radiusCard: 16,
-  radiusBtn: 10,
-  radiusPill: 20,
-
-  // Shadow
-  shadow: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-  },
+// ─── Hex → rgba helper (for brand colors we control, not the theme object) ────
+const hexToRgba = (hex, alpha) => {
+  const clean = hex.replace("#", "");
+  const full =
+    clean.length === 3
+      ? clean.split("").map((c) => c + c).join("")
+      : clean;
+  const bigint = parseInt(full, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
 // ─── Day abbreviation map ──────────────────────────────────────────────────────
@@ -103,7 +69,7 @@ const DAY_SHORT = {
 const shortenDays = (days) =>
   days?.length ? days.map((d) => DAY_SHORT[d] || d).join(" · ") : "Every day";
 
-// ─── Chip component ────────────────────────────────────────────────────────────
+// ─── Chip component (colors always passed in from the caller) ────────────────
 const Chip = ({ label, bg, color, dot }) => (
   <View style={[styles.chip, { backgroundColor: bg }]}>
     {dot && <View style={[styles.chipDot, { backgroundColor: color }]} />}
@@ -111,11 +77,11 @@ const Chip = ({ label, bg, color, dot }) => (
   </View>
 );
 
-// ─── Stat cell ────────────────────────────────────────────────────────────────
-const StatCell = ({ icon, value, flex }) => (
+// ─── Stat cell (color passed in so it stays theme-aware) ──────────────────────
+const StatCell = ({ icon, value, flex, color }) => (
   <View style={[styles.statCell, flex && { flex: 1 }]}>
-    <Ionicons name={icon} size={13} color={T.textMuted} />
-    <ThemeText style={styles.statText} numberOfLines={1}>
+    <Ionicons name={icon} size={13} color={color} />
+    <ThemeText style={[styles.statText, { color }]} numberOfLines={1}>
       {value}
     </ThemeText>
   </View>
@@ -126,41 +92,9 @@ const StatCell = ({ icon, value, flex }) => (
 // ─────────────────────────────────────────────────────────────────────────────
 export default function TimetableScreen() {
   const router = useRouter();
-      const { user, authReady, logOut } = useUser();
-  
+  const { user, authReady, logOut } = useUser();
+  const { theme, scheme } = useTheme();
   const rewardAdsEnabled = useRewardAdsEnabled();
-   if (!authReady) {
-    return (
-      <ThemeView style={styles.centered}>
-        <ActivityIndicator
-          size={20}
-          color="#4f46e5"
-          style={{ flex: 1, alignItems: "center" }}
-        />
-      </ThemeView>
-    );
-  }
-
-    if (!user) {
-      return (
-        <ThemeView style={styles.centered}>
-          <Ionicons name="person-circle-outline" size={64} color="#999" />
-          <Spacer />
-          <ThemeText>No user logged in</ThemeText>
-          <Spacer />
-          <Link href="/login">
-            <ThemeText style={styles.link}>Go to Login</ThemeText>
-          </Link>
-        </ThemeView>
-      );
-    }
-  const runWithOptionalAd = (callback, options = {}) => {
-  if (!rewardAdsEnabled) {
-    return callback();
-  }
-
-  gate(callback, options);
-};
 
   const {
     timetables,
@@ -184,9 +118,45 @@ export default function TimetableScreen() {
     onDismissed: () => console.log("Ad gate: dismissed"),
   });
 
-  const filtered = (timetables || []).filter((t) =>
-    t.bookId?.title?.toLowerCase().includes(search.toLowerCase())
-  );
+  // ── Theme-derived design tokens (recomputed every render, so dark mode
+  // flips instantly the same way DashBordLayout's tabBarStyle does) ──────────
+  const isDark = scheme === "dark";
+  const T = {
+    bg: theme.background,
+    card: isDark ? hexToRgba("#FFFFFF", 0.05) : "#FFFFFF",
+    cardBorder: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+
+    primary: colors.primary,
+    primaryLight: hexToRgba(colors.primary, isDark ? 0.22 : 0.1),
+
+    activeGreen: "#16a34a",
+    activeGreenBg: hexToRgba("#16a34a", isDark ? 0.2 : 0.12),
+    stoppedGray: isDark ? "#9CA3AF" : "#6B7280",
+    stoppedGrayBg: isDark ? "rgba(156,163,175,0.16)" : "#F3F4F6",
+
+    danger: "#EF4444",
+    dangerBg: hexToRgba("#EF4444", isDark ? 0.2 : 0.08),
+
+    textPrimary: theme.title,
+    textSecondary: theme.text,
+    textMuted: isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.4)",
+
+    divider: isDark ? "rgba(255,255,255,0.08)" : "#E5E7EB",
+
+    radiusCard: 16,
+    radiusBtn: 10,
+    radiusPill: 20,
+
+    shadow: isDark
+      ? {}
+      : {
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.06,
+          shadowRadius: 8,
+          elevation: 3,
+        },
+  };
 
   const loadOfflineMap = async () => {
     const data = await getOfflineTimetables();
@@ -201,6 +171,46 @@ export default function TimetableScreen() {
       loadOfflineMap();
     }, [])
   );
+
+  const runWithOptionalAd = (callback, options = {}) => {
+    if (!rewardAdsEnabled) {
+      return callback();
+    }
+    gate(callback, options);
+  };
+
+  const filtered = (timetables || []).filter((t) =>
+    t.bookId?.title?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // ── Early returns come AFTER every hook has been called ──
+  if (!authReady) {
+    return (
+      <ThemeView style={styles.centered}>
+        <ActivityIndicator
+          size={20}
+          color={colors.primary}
+          style={{ flex: 1, alignItems: "center" }}
+        />
+      </ThemeView>
+    );
+  }
+
+  if (!user) {
+    return (
+      <ThemeView style={styles.centered}>
+        <Ionicons name="person-circle-outline" size={64} color={T.textMuted} />
+        <Spacer />
+        <ThemeText>No user logged in</ThemeText>
+        <Spacer />
+        <Link href="/login">
+          <ThemeText style={{ color: T.primary, fontWeight: "700" }}>
+            Go to Login
+          </ThemeText>
+        </Link>
+      </ThemeView>
+    );
+  }
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -272,44 +282,27 @@ export default function TimetableScreen() {
     );
   };
 
-  // const handleSaveOfflineGated = (item) => {
-  //   gate(
-  //     async () => {
-  //       try {
-  //         setSavingOfflineId(item._id);
-  //         await saveTimetableOffline(item);
-  //         setOfflineMap((prev) => ({ ...prev, [item._id]: true }));
-  //         Alert.alert("Saved offline", `"${item.bookId?.title}" is now available without internet.`);
-  //       } catch {
-  //         Alert.alert("Error", "Failed to save offline.");
-  //       } finally {
-  //         setSavingOfflineId(null);
-  //       }
-  //     },
-  //     { cooldown: 30000 }
-  //   );
-  // };
   const handleSaveOfflineGated = (item) => {
-  runWithOptionalAd(
-    async () => {
-      try {
-        setSavingOfflineId(item._id);
-        await saveTimetableOffline(item);
-        setOfflineMap((prev) => ({ ...prev, [item._id]: true }));
+    runWithOptionalAd(
+      async () => {
+        try {
+          setSavingOfflineId(item._id);
+          await saveTimetableOffline(item);
+          setOfflineMap((prev) => ({ ...prev, [item._id]: true }));
 
-        Alert.alert(
-          "Saved offline",
-          `"${item.bookId?.title}" is now available without internet.`
-        );
-      } catch {
-        Alert.alert("Error", "Failed to save offline.");
-      } finally {
-        setSavingOfflineId(null);
-      }
-    },
-    { cooldown: 30000 }
-  );
-};
+          Alert.alert(
+            "Saved offline",
+            `"${item.bookId?.title}" is now available without internet.`
+          );
+        } catch {
+          Alert.alert("Error", "Failed to save offline.");
+        } finally {
+          setSavingOfflineId(null);
+        }
+      },
+      { cooldown: 30000 }
+    );
+  };
 
   const handleRemoveOffline = (id) => {
     Alert.alert(
@@ -335,8 +328,7 @@ export default function TimetableScreen() {
 
   const openBookFromTimetable = async (item) => {
     closeMenu();
-    // gate(async () => {
-      runWithOptionalAd(async () => {
+    runWithOptionalAd(async () => {
       try {
         const book = item.bookId;
         if (!book) return Alert.alert("Error", "No book attached.");
@@ -387,7 +379,13 @@ export default function TimetableScreen() {
     const isLink = item.bookId?.fileType === "link";
 
     return (
-      <View style={styles.card}>
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: T.card, borderColor: T.cardBorder },
+          T.shadow,
+        ]}
+      >
         {/* ── Top row: title + menu ── */}
         <View style={styles.cardTop}>
           <View style={styles.cardMeta}>
@@ -412,7 +410,7 @@ export default function TimetableScreen() {
             anchor={
               <Pressable
                 onPress={() => setMenuVisibleId(item._id)}
-                style={styles.menuAnchor}
+                style={[styles.menuAnchor, { backgroundColor: T.bg }]}
                 hitSlop={10}
               >
                 <Ionicons name="ellipsis-vertical" size={18} color={T.textSecondary} />
@@ -460,36 +458,46 @@ export default function TimetableScreen() {
         </View>
 
         {/* ── Book title ── */}
-        <ThemeText style={styles.cardTitle} numberOfLines={2}>
+        <ThemeText
+          style={[styles.cardTitle, { color: T.textPrimary }]}
+          numberOfLines={2}
+        >
           {item.bookId?.title || "Untitled"}
         </ThemeText>
 
         {/* ── Schedule stats ── */}
-        <View style={styles.statRow}>
-          <StatCell icon="time-outline" value={item.reminderTime} />
-          <View style={styles.statDivider} />
+        <View style={[styles.statRow, { backgroundColor: T.bg }]}>
+          <StatCell icon="time-outline" value={item.reminderTime} color={T.textMuted} />
+          <View style={[styles.statDivider, { backgroundColor: T.divider }]} />
           <StatCell
             icon="notifications-outline"
             value={`${item.noticeCount} ${item.noticeCount === 1 ? "session" : "sessions"}`}
+            color={T.textMuted}
           />
-          <View style={styles.statDivider} />
+          <View style={[styles.statDivider, { backgroundColor: T.divider }]} />
           <StatCell
             icon="calendar-outline"
             value={shortenDays(item.studyDays)}
             flex
+            color={T.textMuted}
           />
         </View>
 
         {/* ── Delivery mode footer ── */}
         {item.deliveryMode && (
-          <ThemeText style={styles.deliveryMode}>
+          <ThemeText style={[styles.deliveryMode, { color: T.textMuted }]}>
             {item.deliveryMode.charAt(0).toUpperCase() + item.deliveryMode.slice(1)} delivery
           </ThemeText>
         )}
 
         {/* ── Inline action feedback ── */}
         {(isActioning || isDeleting) && (
-          <View style={[styles.feedbackRow, isDeleting && styles.feedbackDanger]}>
+          <View
+            style={[
+              styles.feedbackRow,
+              { backgroundColor: isDeleting ? T.dangerBg : T.primaryLight, borderTopColor: T.divider },
+            ]}
+          >
             <ActivityIndicator
               size="small"
               color={isDeleting ? T.danger : T.primary}
@@ -497,7 +505,7 @@ export default function TimetableScreen() {
             <ThemeText
               style={[
                 styles.feedbackText,
-                isDeleting && { color: T.danger },
+                { color: isDeleting ? T.danger : T.primary },
               ]}
             >
               {isDeleting ? "Deleting…" : actionLabel}
@@ -508,10 +516,7 @@ export default function TimetableScreen() {
         {/* ── Offline toggle ── */}
         {!isLink && (
           <Pressable
-            style={[
-              styles.offlineRow,
-              isOffline && styles.offlineRowSaved,
-            ]}
+            style={[styles.offlineRow, { borderTopColor: T.divider }]}
             onPress={() =>
               isOffline
                 ? handleRemoveOffline(item._id)
@@ -532,7 +537,9 @@ export default function TimetableScreen() {
                 <ThemeText style={[styles.offlineText, { color: T.activeGreen }]}>
                   Available offline
                 </ThemeText>
-                <ThemeText style={styles.offlineSub}>· Tap to remove</ThemeText>
+                <ThemeText style={[styles.offlineSub, { color: T.textMuted }]}>
+                  · Tap to remove
+                </ThemeText>
               </>
             ) : (
               <>
@@ -555,13 +562,15 @@ export default function TimetableScreen() {
       {/* ── Header ── */}
       <View style={styles.header}>
         <View>
-          <ThemeText style={styles.heading}>Timetables</ThemeText>
-          <ThemeText style={styles.subheading}>
+          <ThemeText style={[styles.heading, { color: T.textPrimary }]}>
+            Timetables
+          </ThemeText>
+          <ThemeText style={[styles.subheading, { color: T.textMuted }]}>
             {filtered.length} schedule{filtered.length !== 1 ? "s" : ""}
           </ThemeText>
         </View>
         <Pressable
-          style={styles.createBtn}
+          style={[styles.createBtn, { backgroundColor: T.primary }, T.shadow]}
           onPress={() => router.push("/book")}
         >
           <Ionicons name="arrow-forward" size={18} color="#fff" />
@@ -581,7 +590,10 @@ export default function TimetableScreen() {
           placeholder="Search by book title…"
           value={search}
           onChangeText={setSearch}
-          style={styles.searchInput}
+          style={[
+            styles.searchInput,
+            { backgroundColor: T.card, borderColor: T.cardBorder },
+          ]}
         />
       </View>
 
@@ -602,20 +614,20 @@ export default function TimetableScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <View style={styles.emptyIconWrap}>
+            <View style={[styles.emptyIconWrap, { backgroundColor: T.primaryLight }]}>
               <Ionicons name="calendar-outline" size={36} color={T.primary} />
             </View>
-            <ThemeText style={styles.emptyTitle}>
+            <ThemeText style={[styles.emptyTitle, { color: T.textPrimary }]}>
               {search ? "No results found" : "No timetables yet"}
             </ThemeText>
-            <ThemeText style={styles.emptySub}>
+            <ThemeText style={[styles.emptySub, { color: T.textMuted }]}>
               {search
                 ? `No schedules match "${search}"`
                 : "Create a schedule to start sending yourself study reminders."}
             </ThemeText>
             {!search && (
               <Pressable
-                style={styles.emptyBtn}
+                style={[styles.emptyBtn, { backgroundColor: T.primary }]}
                 onPress={() => router.push("/createTimetable")}
               >
                 <ThemeText style={styles.emptyBtnText}>Create timetable</ThemeText>
@@ -629,22 +641,22 @@ export default function TimetableScreen() {
       <BannerAdComponent />
 
       {/* ── Rewarded modal ── */}
-      {/* <RewardedAdModal {...modalProps} /> */}
       {rewardAdsEnabled && (
-  <RewardedAdModal {...modalProps} />
-)}
+        <RewardedAdModal {...modalProps} />
+      )}
 
     </ThemeView>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// STYLES
+// STYLES — layout only. All colors are applied inline above via `T`, since
+// StyleSheet.create runs once at module load and would otherwise "freeze"
+// whatever color was baked in at that time, ignoring theme changes.
 // ─────────────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: T.bg,
     paddingHorizontal: 16,
   },
 
@@ -659,12 +671,10 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 26,
     fontWeight: "800",
-    color: T.textPrimary,
     letterSpacing: -0.5,
   },
   subheading: {
     fontSize: 12,
-    color: T.textMuted,
     marginTop: 2,
     fontWeight: "500",
   },
@@ -672,11 +682,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
-    backgroundColor: T.primary,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: T.radiusBtn,
-    ...T.shadow,
+    borderRadius: 10,
   },
   createBtnText: {
     color: "#fff",
@@ -698,10 +706,8 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     paddingLeft: 36,
-    backgroundColor: T.card,
-    borderRadius: T.radiusBtn,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: T.cardBorder,
   },
 
   // ── List ──
@@ -712,13 +718,10 @@ const styles = StyleSheet.create({
 
   // ── Card ──
   card: {
-    backgroundColor: T.card,
-    borderRadius: T.radiusCard,
+    borderRadius: 16,
     marginVertical: 6,
     padding: 16,
     borderWidth: 1,
-    borderColor: T.cardBorder,
-    ...T.shadow,
   },
 
   cardTop: {
@@ -739,7 +742,6 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: "700",
-    color: T.textPrimary,
     lineHeight: 22,
     marginBottom: 12,
   },
@@ -747,7 +749,6 @@ const styles = StyleSheet.create({
   menuAnchor: {
     padding: 6,
     borderRadius: 8,
-    backgroundColor: T.bg,
   },
 
   // ── Chip ──
@@ -757,7 +758,7 @@ const styles = StyleSheet.create({
     gap: 5,
     paddingHorizontal: 9,
     paddingVertical: 4,
-    borderRadius: T.radiusPill,
+    borderRadius: 20,
   },
   chipDot: {
     width: 6,
@@ -780,7 +781,6 @@ const styles = StyleSheet.create({
   statRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: T.bg,
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 12,
@@ -793,19 +793,16 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: 12,
-    color: T.textSecondary,
     fontWeight: "500",
   },
   statDivider: {
     width: 1,
     height: 14,
-    backgroundColor: T.divider,
     marginHorizontal: 10,
   },
 
   deliveryMode: {
     fontSize: 11,
-    color: T.textMuted,
     fontWeight: "500",
     marginBottom: 4,
     textTransform: "capitalize",
@@ -821,16 +818,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingBottom: 6,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: T.divider,
-    backgroundColor: T.primaryLight,
     borderRadius: 8,
-  },
-  feedbackDanger: {
-    backgroundColor: T.dangerBg,
   },
   feedbackText: {
     fontSize: 13,
-    color: T.primary,
     fontWeight: "500",
   },
 
@@ -842,10 +833,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: T.divider,
-  },
-  offlineRowSaved: {
-    // subtle tint when saved
   },
   offlineText: {
     fontSize: 13,
@@ -853,7 +840,6 @@ const styles = StyleSheet.create({
   },
   offlineSub: {
     fontSize: 12,
-    color: T.textMuted,
     fontWeight: "400",
   },
 
@@ -868,7 +854,6 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: T.primaryLight,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 8,
@@ -876,22 +861,19 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 17,
     fontWeight: "700",
-    color: T.textPrimary,
     textAlign: "center",
   },
   emptySub: {
     fontSize: 13,
-    color: T.textMuted,
     textAlign: "center",
     lineHeight: 18,
     marginBottom: 4,
   },
   emptyBtn: {
     marginTop: 12,
-    backgroundColor: T.primary,
     paddingHorizontal: 20,
     paddingVertical: 10,
-    borderRadius: T.radiusBtn,
+    borderRadius: 10,
   },
   emptyBtnText: {
     color: "#fff",

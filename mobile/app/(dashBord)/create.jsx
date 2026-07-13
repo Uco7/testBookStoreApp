@@ -1054,6 +1054,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#444",
     borderRadius: 8,
   },
+   link: {
+    color: "#4f46e5",
+    fontWeight: "500",
+  },
 
   typeBtnActive: {
     backgroundColor: colors.primary,

@@ -132,7 +132,7 @@
   "expo": {
     "name": "BookStore",
     "slug": "bookstore-app",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -159,18 +159,27 @@
         ]
       }
     },
+    
 
     "android": {
       "package": "com.ucmobileapk.bookstore",
       "versionCode": 4,
       "googleServicesFile": "./google-services.json",
+      // "permissions": [
+      //   "RECEIVE_BOOT_COMPLETED",
+      //   "VIBRATE",
+      //   "POST_NOTIFICATIONS",
+      //   "android.permission.RECORD_AUDIO",
+      //   "android.permission.MODIFY_AUDIO_SETTINGS"
+      // ],
       "permissions": [
-        "RECEIVE_BOOT_COMPLETED",
-        "VIBRATE",
-        "POST_NOTIFICATIONS",
-        "android.permission.RECORD_AUDIO",
-        "android.permission.MODIFY_AUDIO_SETTINGS"
-      ],
+  "RECEIVE_BOOT_COMPLETED",
+  "VIBRATE",
+  "POST_NOTIFICATIONS",
+  "SCHEDULE_EXACT_ALARM",
+  "android.permission.RECORD_AUDIO",
+  "android.permission.MODIFY_AUDIO_SETTINGS"
+],
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"

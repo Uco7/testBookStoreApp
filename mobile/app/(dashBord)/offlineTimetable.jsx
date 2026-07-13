@@ -272,6 +272,9 @@ const styles = StyleSheet.create({
   },
   card: {
     marginVertical: 8,
+    // width: "95%",
+    marginHorizontal: 6,
+    width: "95%",
     padding: 14,
     borderRadius: 14,
   },

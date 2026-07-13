@@ -6,7 +6,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { Alert } from "react-native";
 import { useRouter } from "expo-router";
-import { scheduleTimetableLocally } from "../utils/scheduleTimetable";
+// import { scheduleTimetableLocally } from "../utils/scheduleTimetable";
 import {
   hardCancelTimetableNotifications,
   scheduleOfflineTimetable,
@@ -14,11 +14,11 @@ import {
   unmuteLocalNotifications,
   isLocallyMuted,
 } from "../utils/offlineNotificationService/offlineNotificationService";
-import {backendUrl_ngrok,backendDomainUrl} from "../utils/config/appUrl"
+import {appUrl} from "../utils/config/appUrl"
 
 // const APPURL=backendUrl_ngrok
 
-const APPURL=backendDomainUrl
+const APPURL=appUrl
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -140,6 +140,87 @@ export function TimetableProvider({ children }) {
   // soon as the server confirms creation, and push everything else
   // (local scheduling, list refresh, access-status refresh) into the
   // background so the success alert shows immediately.
+  // const createTimetable = async (params) => {
+  //   try {
+  //     const token = await AsyncStorage.getItem("token");
+  //     if (!token) {
+  //       Alert.alert("Unauthorized", "Please log in to continue.");
+  //       router.replace("/login");
+  //       return;
+  //     }
+
+  //     // Attach ad-unlock header if the client has an active unlock window
+  //     const { unlocked: hasAdUnlock } = await getAdUnlockState();
+
+  //     const payload = {
+  //       noticeCount:Number(params.noticeCount),
+  //       reminderTime:params.reminderTime,
+  //       reminderType:params.reminderType,
+  //       studyDays:params.studyDays,
+  //       bookId:params.bookId,
+  //       notificationMessage: params.notificationMessage,
+  //       timetableType:params.timetableType || "regular",
+  //     };
+
+  //     const headers = {
+  //       Authorization: `Bearer ${token}`,
+  //       ...(hasAdUnlock ? { "x-ad-unlock": "true" } : {}),
+  //     };
+
+  //     // Give the server call a generous-but-bounded timeout so a flaky
+  //     // network doesn't hang the UI indefinitely either.
+  //     const res = await axios.post(
+  //       `${APPURL}/api/v1/books/create/timetable`,
+  //       payload,
+  //       { headers, timeout: 15000 }
+  //     );
+
+  //     const timetable = res.data?.timetable;
+  //     if (!timetable) return res.data;
+
+  //     // ── Optimistically update local state right away ──────────────────────
+  //     // The screen can show success the instant the server confirms, without
+  //     // waiting on a refetch round-trip.
+  //     setTimetables((prev) => [timetable, ...prev]);
+
+  //     // ── Everything below is "nice to have" follow-up work. It must NOT ────
+  //     // block the promise this function returns, so callers (the screen)
+  //     // get control back immediately after server confirmation.
+  //     (async () => {
+  //       try {
+  //         if (hasAdUnlock) await incrementAdCount();
+  //       } catch (e) {
+  //         console.log("incrementAdCount error:", e.message);
+  //       }
+
+  //       try {
+  //         const localResult = await scheduleTimetableLocally(timetable);
+  //         if (localResult) console.log("✅ Local schedule result:", localResult);
+  //       } catch (e) {
+  //         console.log("scheduleTimetableLocally error:", e.message);
+  //       }
+
+  //       try {
+  //         await Promise.all([fetchTimetables(), fetchAccessStatus()]);
+  //       } catch (e) {
+  //         console.log("post-create refresh error:", e.message);
+  //       }
+  //     })();
+
+  //     return res.data;
+  //   } catch (err) {
+  //     console.log("❌ CREATE TIMETABLE FAILED:", err.message);
+  //     if (err.response) {
+  //       console.log("STATUS:", err.response.status);
+  //       console.log("SERVER:", err.response.data);
+  //     }
+  //     throw err;
+  //   }
+  // };
+
+
+
+// ── CREATE TIMETABLE ───────────────────────────────────────────────────────
   const createTimetable = async (params) => {
     try {
       const token = await AsyncStorage.getItem("token");
@@ -149,17 +230,16 @@ export function TimetableProvider({ children }) {
         return;
       }
 
-      // Attach ad-unlock header if the client has an active unlock window
       const { unlocked: hasAdUnlock } = await getAdUnlockState();
 
       const payload = {
-        noticeCount:Number(params.noticeCount),
-        reminderTime:params.reminderTime,
-        reminderType:params.reminderType,
-        studyDays:params.studyDays,
-        bookId:params.bookId,
+        noticeCount: Number(params.noticeCount),
+        reminderTime: params.reminderTime,
+        reminderType: params.reminderType,
+        studyDays: params.studyDays,
+        bookId: params.bookId,
         notificationMessage: params.notificationMessage,
-        timetableType:params.timetableType || "regular",
+        timetableType: params.timetableType || "regular",
       };
 
       const headers = {
@@ -167,8 +247,6 @@ export function TimetableProvider({ children }) {
         ...(hasAdUnlock ? { "x-ad-unlock": "true" } : {}),
       };
 
-      // Give the server call a generous-but-bounded timeout so a flaky
-      // network doesn't hang the UI indefinitely either.
       const res = await axios.post(
         `${APPURL}/api/v1/books/create/timetable`,
         payload,
@@ -176,16 +254,11 @@ export function TimetableProvider({ children }) {
       );
 
       const timetable = res.data?.timetable;
+      const bookTitle = res.data?.bookTitle;
       if (!timetable) return res.data;
 
-      // ── Optimistically update local state right away ──────────────────────
-      // The screen can show success the instant the server confirms, without
-      // waiting on a refetch round-trip.
       setTimetables((prev) => [timetable, ...prev]);
 
-      // ── Everything below is "nice to have" follow-up work. It must NOT ────
-      // block the promise this function returns, so callers (the screen)
-      // get control back immediately after server confirmation.
       (async () => {
         try {
           if (hasAdUnlock) await incrementAdCount();
@@ -194,10 +267,20 @@ export function TimetableProvider({ children }) {
         }
 
         try {
-          const localResult = await scheduleTimetableLocally(timetable);
-          if (localResult) console.log("✅ Local schedule result:", localResult);
+          const ids = await scheduleOfflineTimetable({
+            _id: timetable._id,
+            reminderTime: timetable.reminderTime,
+            reminderType: timetable.reminderType,
+            studyDays: timetable.studyDays,
+            noticeCount: timetable.noticeCount,
+            notificationMessage: timetable.notificationMessage,
+            planType: timetable.planType,
+            mode: timetable.mode,
+            bookTitle: bookTitle || "Study Reminder",
+          });
+          console.log("✅ Local schedule result:", ids);
         } catch (e) {
-          console.log("scheduleTimetableLocally error:", e.message);
+          console.log("scheduleOfflineTimetable error:", e.message);
         }
 
         try {
@@ -240,6 +323,39 @@ export function TimetableProvider({ children }) {
   };
 
   // ── REACTIVATE TIMETABLE ───────────────────────────────────────────────────
+  // const reactivateTimetable = async (id) => {
+  //   try {
+  //     const token = await AsyncStorage.getItem("token");
+
+  //     const res = await axios.patch(
+  //       `${APPURL}/api/v1/books/reactivate/timetable/${id}`,
+  //       {},
+  //       { headers: { Authorization: `Bearer ${token}` } }
+  //     );
+
+  //     const timetable = res.data.timetable;
+
+  //     await hardCancelTimetableNotifications(id);
+  //     await scheduleOfflineTimetable({
+  //       _id: timetable._id,
+  //       reminderTime: timetable.reminderTime,
+  //       reminderType: timetable.reminderType,
+  //       studyDays:timetable.studyDays,
+  //       notificationMessage: timetable.notificationMessage,
+  //       planType: timetable.planType,
+  //       bookTitle: timetable.bookId?.title || "Study Reminder",
+  //       mode:timetable.deliveryMode,
+  //     });
+
+  //     await fetchTimetables();
+  //     return res.data;
+  //   } catch (err) {
+  //     console.log("Reactivate error:", err?.response?.data || err.message);
+  //     throw err;
+  //   }
+  // };
+
+// ── REACTIVATE TIMETABLE ───────────────────────────────────────────────────
   const reactivateTimetable = async (id) => {
     try {
       const token = await AsyncStorage.getItem("token");
@@ -251,17 +367,18 @@ export function TimetableProvider({ children }) {
       );
 
       const timetable = res.data.timetable;
+      const bookTitle = res.data.bookTitle;
 
-      await hardCancelTimetableNotifications(id);
       await scheduleOfflineTimetable({
         _id: timetable._id,
         reminderTime: timetable.reminderTime,
         reminderType: timetable.reminderType,
-        studyDays:timetable.studyDays,
+        studyDays: timetable.studyDays,
+        noticeCount: timetable.noticeCount,
         notificationMessage: timetable.notificationMessage,
         planType: timetable.planType,
-        bookTitle: timetable.bookId?.title || "Study Reminder",
-        mode:timetable.deliveryMode,
+        mode: timetable.mode,
+        bookTitle: bookTitle || timetable.bookId?.title || "Study Reminder",
       });
 
       await fetchTimetables();
@@ -271,6 +388,7 @@ export function TimetableProvider({ children }) {
       throw err;
     }
   };
+
 
   // ── MUTE / UNMUTE ──────────────────────────────────────────────────────────
   const muteNotifications = async (id) => {

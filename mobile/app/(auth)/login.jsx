@@ -109,7 +109,7 @@ export default function Login() {
       <ThemeView style={styles.container} safe={true}>
         <CardTheme style={styles.card}>
 
-        <ThemeText>Login Page</ThemeText>
+        <ThemeText>Login To Your Account</ThemeText>
 
         <Spacer />
 
@@ -169,6 +169,21 @@ export default function Login() {
             style={{ color: colors.primary, fontSize: 20, fontWeight: '600' }}
             >
             Click
+          </Link>
+         
+
+          
+        </ThemeText>
+        <ThemeText>
+           <Spacer height={20} />
+          <Text style={{ fontSize: 14 }}>
+            Or  Register An{" "}
+          </Text>
+           <Link
+            href="/register"
+            style={{ color: colors.primary, fontSize: 14, fontWeight: '600' }}
+            >
+            Account
           </Link>
         </ThemeText>
             </CardTheme>
