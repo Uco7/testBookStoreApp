@@ -47,7 +47,7 @@
 
 
 import jwt from "jsonwebtoken";
-import User from "../models/User.js"; // adjust path to your User model
+import User from "../models/user.js"; // adjust path to your User model
 
 export default async function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
