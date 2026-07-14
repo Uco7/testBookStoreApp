@@ -36,9 +36,9 @@ function App() {
                 <Route path='/create/users-notice' element={<CreateNotice />} /> 
                 <Route path='/users/subscribed-users' element={<SubscribedUsers/>} /> 
                 <Route path='/users/users-activities/page' element={<UsersActivities/>} /> 
-                <Route path='/privacy-policy/page' element={<PrivacyPolicy/>} /> 
+                <Route path='/' element={<PrivacyPolicy/>} /> 
 
-                <Route path='/' element={<AdminAuth />} /> 
+                <Route path='/privacy-policy/page' element={<AdminAuth />} /> 
                 
                 
             </Routes>
