@@ -30,32 +30,31 @@ export function UserProvider({ children }) {
   /* ---------- REGISTRATION FLOW ---------- */
 
   // Step 1: Request OTP
-  async function requestRegistrationOTP({ username, fullName, email, password }) {
-    try {
-      const res = await api.post("/api/v1/auth/register/request", {
-        username,
-        fullName,
-        email,
-        password,
-      });
-
-      return res.data;
-    } catch (err) {
-      let message = "Something went wrong.";
+async function requestRegistrationOTP({ username, fullName, email, password }) {
+  try {
+    const res = await api.post("/api/v1/auth/register/request", {
+      username,
+      fullName,
+      email,
+      password,
+    });
+    return res.data;
+  } catch (err) {
+    let message = "Something went wrong.";
 
     if (err.message === "Network Error") {
       message = "No internet connection. Please check your network.";
     } else if (err.response) {
-      message = err.response.data?.message ;
+      // fall back to default instead of clobbering it with undefined
+      message = err.response.data?.message || "Registration failed. Please try again.";
     } else if (err.request) {
-      message = "Server is not responding. Try again .";
+      message = "Server is not responding. Try again.";
     }
 
     console.log("OTP Request Error:", message);
-
     throw new Error(message);
-    }
   }
+}
 
   // Step 2: Verify OTP
   async function verifyAndFinalizeRegister(email, otp) {
@@ -307,6 +306,29 @@ async function fetchUser() {
     }
   }
 
+  async function deleteAccount() {
+  try {
+    const token = await getToken();
+
+    if (token) {
+      await api.delete("/api/v1/auth/delete-account", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    }
+  } catch (err) {
+    const message =
+      err.response?.data?.message || "Failed to delete account. Please try again.";
+    console.log("Delete Account Error:", err.response?.data || err.message);
+    throw new Error(message);
+  } finally {
+    // Clear local session regardless — if the server call succeeded the
+    // account is gone; if it failed, logging the device out locally is
+    // still the safer default rather than leaving a stale token around.
+    await AsyncStorage.removeItem("token");
+    setUser(null);
+    setAuthReady(true);
+  }
+}
   /* ---------- INIT ---------- */
 
   useEffect(() => {
@@ -323,6 +345,9 @@ async function fetchUser() {
         requestRegistrationOTP,
         verifyAndFinalizeRegister,
         logOut,
+        deleteAccount,
+        forgotPassword,
+        resetPassword,
         forgotPassword,
         resetPassword,
       }}

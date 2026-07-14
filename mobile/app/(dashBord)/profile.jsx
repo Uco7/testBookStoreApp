@@ -11,14 +11,34 @@ import ProtectedRoute from "../../utils/authCheck/ProtectedRoute";
 import { BannerAdComponent } from "../../component/AdsManager";
 
 const Profile = () => {
-  const { user, authReady, logOut } = useUser();
+  const { user, authReady, logOut, deleteAccount } = useUser();
   const router = useRouter();
 
   const handleLogout = async () => {
     await logOut();
     router.replace("/login");
   };
-
+const handleDeleteAccount = () => {
+    Alert.alert(
+      "Delete Account",
+      "This will permanently delete your account, uploaded books, and timetables. This cannot be undone. Are you sure you want to continue?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteAccount();
+              router.replace("/login");
+            } catch (err) {
+              Alert.alert("Error", err.message || "Failed to delete account.");
+            }
+          },
+        },
+      ]
+    );
+  };
   if (!authReady) {
     return (
       <ThemeView style={styles.centered}>
@@ -98,6 +118,16 @@ const Profile = () => {
                 Logout
               </ThemeText>
             </Pressable>
+            <Pressable
+  style={[styles.actionButton, styles.logout]}
+  onPress={handleDeleteAccount}
+>
+  <Ionicons name="trash-outline" size={22} color="#ef4444" />
+  <ThemeText style={[styles.actionText, { color: "#ef4444" }]}>
+    Delete Account
+  </ThemeText>
+</Pressable>
+            
           </View>
 
           {/* Banner now renders here, in normal flow, after Logout —

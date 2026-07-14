@@ -37,9 +37,8 @@ router.post(
 
 router.post("/forgot-password", authLimiter, forgotPassword)
 router.post("/reset-password", authLimiter, resetPassword)
-// router.post("/register", register);
-// router.post("/login", login);
-// router.get("/user", authMiddleware, getUser);
+router.delete("/delete-account", authMiddleware, deleteAccount);
+
 // router.get("/app/version", appVersion);
 // App version route
 const latestAppInfo = {

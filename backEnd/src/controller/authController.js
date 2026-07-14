@@ -7,6 +7,10 @@ import User from "../models/user.js";
 import dotenv from "dotenv";
 import { sendPushNotification } from "../services/pushNotification.js";
 // import { sendPushNotification } from "../services/pushNotification.js";
+import Book from "../models/book.js";
+import UserTimetable from "../models/userTimetable.js";
+import Subscription from "../models/subscription.js";
+import { cancelTimetableJobs } from "../services/scheduleTimetableJobs.js";
 
 
 dotenv.config();
@@ -440,6 +444,52 @@ export const logout = async (req, res) => {
     console.error("Logout Error:", err);
     res.status(500).json({
       message: err.message || "Server error",
+    });
+  }
+};
+
+
+/* ---------- Delete Account ---------- */
+// Cascades: cancels scheduled jobs → deletes timetables → deletes
+// books/uploads → deletes subscription records → deletes the user.
+// Order matters: jobs and timetables must go before the user record,
+// since cancelTimetableJobs needs the timetable ids to look up jobIds.
+
+export const deleteAccount = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // 1. Cancel any scheduled reminder/alarm jobs tied to this user's timetables
+    const timetables = await UserTimetable.find({ userId }).select("_id");
+
+    await Promise.all(
+      timetables.map((t) =>
+        cancelTimetableJobs(t._id).catch((err) =>
+          console.log("Cancel job error for", t._id, ":", err.message)
+        )
+      )
+    );
+
+    // 2. Delete all timetables
+    await UserTimetable.deleteMany({ userId });
+
+    // 3. Delete all uploaded books/files
+    await Book.deleteMany({ user: userId });
+
+    // 4. Delete subscription/transaction history
+    await Subscription.deleteMany({ userId });
+
+    // 5. Finally, delete the user account itself
+    await User.findByIdAndDelete(userId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Account and all associated data deleted successfully",
+    });
+  } catch (err) {
+    console.error("Delete Account Error:", err);
+    return res.status(500).json({
+      message: err.message || "Failed to delete account",
     });
   }
 };
