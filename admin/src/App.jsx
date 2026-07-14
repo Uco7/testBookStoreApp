@@ -12,7 +12,7 @@ import  SavedTImetable  from './components/SavedTImetable'
 import SubscribedUsers from './components/SubscribedUsers'
 import UsersActivities from './components/UsersActivities'
 import AdminProtectedRoute from './components/authcomponent/Adminprotectedroute'
-// import PrivacyPolicy from './components/PrivacyPolicy'
+import PrivacyPolicy from './components/PrivacyPolicy'
 
 function App() {
     return (
@@ -36,7 +36,7 @@ function App() {
                 <Route path='/create/users-notice' element={<CreateNotice />} /> 
                 <Route path='/users/subscribed-users' element={<SubscribedUsers/>} /> 
                 <Route path='/users/users-activities/page' element={<UsersActivities/>} /> 
-                {/* <Route path='/privacy-policy/page' element={<PrivacyPolicy/>} />  */}
+                <Route path='/privacy-policy/page' element={<PrivacyPolicy/>} /> 
 
                 <Route path='/' element={<AdminAuth />} /> 
                 
