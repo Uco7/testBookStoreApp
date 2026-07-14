@@ -1,4 +1,4 @@
-import { StyleSheet, View, Pressable, ActivityIndicator, ScrollView } from "react-native";
+import { StyleSheet, View, Pressable, ActivityIndicator, ScrollView,Alert } from "react-native";
 import React from "react";
 import ThemeView from "../../component/ThemeView";
 import ThemeText from "../../component/ThemeText";
@@ -21,7 +21,7 @@ const Profile = () => {
 const handleDeleteAccount = () => {
     Alert.alert(
       "Delete Account",
-      "This will permanently delete your account, uploaded books, and timetables. This cannot be undone. Are you sure you want to continue?",
+      "This will permanently delete your account, uploaded books,  timetables, all files and records. This cannot be undone. Are you sure you want to continue?",
       [
         { text: "Cancel", style: "cancel" },
         {
