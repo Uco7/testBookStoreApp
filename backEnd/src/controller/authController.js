@@ -22,7 +22,7 @@ const NAME_REGEX = /^[a-zA-Z\s.'-]{2,50}$/;
 export const requestRegisterOTP = async (req, res) => {
   try {
     const { username, fullName, email, password } = req.body;
-    
+    console.log("Request Register OTP:", req.body);
     if (!username || !fullName || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
@@ -154,6 +154,7 @@ if(!EMAIL_REGEX.test(cleanEmail)){
 export const login = async (req, res) => {
   try {
     const { identifier, password } = req.body;
+    console.log("Login Request:", req.body);
 
     if (!identifier || !password) {
       return res.status(400).json({ msg: "Invalid credentials" });

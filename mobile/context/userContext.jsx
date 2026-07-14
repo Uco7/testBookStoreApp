@@ -46,7 +46,7 @@ export function UserProvider({ children }) {
     if (err.message === "Network Error") {
       message = "No internet connection. Please check your network.";
     } else if (err.response) {
-      message = err.response.data?.message || "Request failed. Please try again.";
+      message = err.response.data?.message ;
     } else if (err.request) {
       message = "Server is not responding. Try again .";
     }
