@@ -17,6 +17,8 @@ const RefereceLayout = () => {
       
         <Stack.Screen name='appUsage'options={{title:"Register Page"}} /> 
         <Stack.Screen name='questionScreen'options={{title:"Login Page"}} />
+        <Stack.Screen name='Privacypolicyscreen'options={{href:null}} />
+        <Stack.Screen name='Termsandconditionsscreen'options={{href:null}} />
     </Stack>
   )
 }

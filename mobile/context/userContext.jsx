@@ -48,7 +48,7 @@ export function UserProvider({ children }) {
     } else if (err.response) {
       message = err.response.data?.message || "Request failed. Please try again.";
     } else if (err.request) {
-      message = "Server is not responding. Try again later.";
+      message = "Server is not responding. Try again .";
     }
 
     console.log("OTP Request Error:", message);

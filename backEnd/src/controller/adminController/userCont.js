@@ -29,51 +29,51 @@ export const getallUsers = async (req, res) => {
 /* ---------- Get Online / Offline User Counts ---------- */
 // Returns a simple stats object you can drop straight into a dashboard:
 // { totalUsers, onlineUsers, offlineUsers }
-// export const getUserActivityStats = async (req, res) => {
-//     try {
-//         const totalUsers = await User.countDocuments();
-//         const onlineUsers = await User.countDocuments({ "activityStatus.isOnline": true });
-//         const offlineUsers = totalUsers - onlineUsers;
- 
-//         res.status(200).json({
-//             totalUsers,
-//             onlineUsers,
-//             offlineUsers
-//         });
- 
-//     } catch (err) {
-//         console.error("Get User Activity Stats Error:", err);
-//         res.status(500).json({
-//             message: err.message || "Internal server error"
-//         });
-//     }
-// };
 export const getUserActivityStats = async (req, res) => {
-  try {
-    const ONLINE_THRESHOLD_MS = 5 * 60 * 1000; // e.g. 5 minutes of inactivity = offline
-    const cutoff = new Date(Date.now() - ONLINE_THRESHOLD_MS);
-
-    const totalUsers = await User.countDocuments();
-
-    const onlineUsers = await User.countDocuments({
-      "activityStatus.isOnline": true,
-      "activityStatus.lastSeen": { $gte: cutoff },
-    });
-
-    const offlineUsers = totalUsers - onlineUsers;
-
-    res.status(200).json({
-      totalUsers,
-      onlineUsers,
-      offlineUsers,
-    });
-  } catch (err) {
-    console.error("Get User Activity Stats Error:", err);
-    res.status(500).json({
-      message: err.message || "Internal server error",
-    });
-  }
+    try {
+        const totalUsers = await User.countDocuments();
+        const onlineUsers = await User.countDocuments({ "activityStatus.isOnline": true });
+        const offlineUsers = totalUsers - onlineUsers;
+ 
+        res.status(200).json({
+            totalUsers,
+            onlineUsers,
+            offlineUsers
+        });
+ 
+    } catch (err) {
+        console.error("Get User Activity Stats Error:", err);
+        res.status(500).json({
+            message: err.message || "Internal server error"
+        });
+    }
 };
+// export const getUserActivityStats = async (req, res) => {
+//   try {
+//     const ONLINE_THRESHOLD_MS = 5 * 60 * 1000; // e.g. 5 minutes of inactivity = offline
+//     const cutoff = new Date(Date.now() - ONLINE_THRESHOLD_MS);
+
+//     const totalUsers = await User.countDocuments();
+
+//     const onlineUsers = await User.countDocuments({
+//       "activityStatus.isOnline": true,
+//       "activityStatus.lastSeen": { $gte: cutoff },
+//     });
+
+//     const offlineUsers = totalUsers - onlineUsers;
+
+//     res.status(200).json({
+//       totalUsers,
+//       onlineUsers,
+//       offlineUsers,
+//     });
+//   } catch (err) {
+//     console.error("Get User Activity Stats Error:", err);
+//     res.status(500).json({
+//       message: err.message || "Internal server error",
+//     });
+//   }
+// };
 
 /* ---------- Get Single User by ID ---------- */
 export const getSingleUser = async (req, res) => {

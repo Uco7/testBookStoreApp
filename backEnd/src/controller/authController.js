@@ -424,6 +424,8 @@ export const sendTestNotification = async (req, res) => {
 // Mounted behind your auth middleware (req.user must be set).
 // Flips the user back to offline and stamps lastSeen so the
 // dashboard's "Offline · Xm ago" text is accurate.
+
+
 export const logout = async (req, res) => {
   try {
     await User.findByIdAndUpdate(req.user.id, {
