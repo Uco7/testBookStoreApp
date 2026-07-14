@@ -23,6 +23,7 @@ function App() {
                 <Route path='/admin/dasbord-page' element={
                     <AdminProtectedRoute>
 
+                    <Route path='/' element={<AdminAuth />} /> 
                     <Dashbord />
                     </AdminProtectedRoute>
                     
@@ -38,7 +39,6 @@ function App() {
                 <Route path='/users/users-activities/page' element={<UsersActivities/>} /> 
                 <Route path='/privacy-policy/page' element={<PrivacyPolicy/>} /> 
 
-                <Route path='/' element={<AdminAuth />} /> 
                 
                 
             </Routes>
