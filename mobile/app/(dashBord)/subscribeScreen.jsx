@@ -33,12 +33,12 @@ import Spacer from "../../component/Spacer";
 import { colors } from "../../constant/colors";
 import { useUser } from "../../hook/useUser";
 import { useSubscription } from "../../hook/Usesubscription";
-import { backendUrl_ngrok,backendDomainUrl } from "../../utils/config/appUrl";
+import {  appUrl} from "../../utils/config/appUrl";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CONFIG
 // ─────────────────────────────────────────────────────────────────────────────
-const APP_URL  = backendDomainUrl
+const APP_URL  = appUrl
 const USD_RATE = 1600;
 
 const PLANS = {
@@ -56,7 +56,7 @@ const PLANS = {
   yearly: {
     id:          "yearly",
     label:       "Yearly",
-    naira:       15000,
+    naira:       200,
     get dollar() { return (this.naira / USD_RATE).toFixed(2); },
     period:      "per year",
     badge:       "2 months FREE",

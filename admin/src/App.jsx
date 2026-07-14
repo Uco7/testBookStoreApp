@@ -13,6 +13,7 @@ import SubscribedUsers from './components/SubscribedUsers'
 import UsersActivities from './components/UsersActivities'
 import AdminProtectedRoute from './components/authcomponent/Adminprotectedroute'
 import PrivacyPolicy from './components/PrivacyPolicy'
+import UsersDeleteAccountInfo from './components/UsersDeleteACtInfo'
 
 function App() {
     return (
@@ -38,6 +39,7 @@ function App() {
                 <Route path='/users/subscribed-users' element={<SubscribedUsers/>} /> 
                 <Route path='/users/users-activities/page' element={<UsersActivities/>} /> 
                 <Route path='/privacy-policy/page' element={<PrivacyPolicy/>} /> 
+                <Route path='/users/delete-account/info-page' element={<UsersDeleteAccountInfo/>} /> 
 
                 
                 
