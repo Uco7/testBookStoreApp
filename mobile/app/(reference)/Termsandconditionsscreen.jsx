@@ -68,24 +68,22 @@ const TermsAndConditionsScreen = () => {
         </Section>
 
         <Section title="5. Content & Library">
-          Any books, timetables, or other content you add to your library
-          remain your responsibility. We are not liable for content you
-          upload, save, or share through the app.
+          BookStoreApp provides access to educational resources and allows users to save books, 
+          create timetables, and manage personal study content.
+           Users are responsible for any content they upload, save, or share through the app.
         </Section>
 
         <Section title="6. Subscriptions & Ads">
-          Some features may be offered through paid subscriptions or
-          unlocked by viewing ads. Subscription terms, pricing, and
-          renewal details will be presented to you before purchase. Ads
-          are provided by third-party ad networks as described in our
-          Privacy Policy.
+          Premium features are available through paid subscriptions processed securely by Paystack. 
+          Free users may be required to view rewarded advertisements to access certain features.
+           Subscription pricing, billing terms, and renewal information are displayed before purchase.
         </Section>
 
         <Section title="7. Intellectual Property">
-          The app, including its design, logo, and original content, is
-          owned by us or our licensors and is protected by applicable
-          intellectual property laws. You may not copy, modify, or
-          distribute any part of the app without permission.
+          The BookStoreApp software, source code, user interface, and original content
+           created for the app are protected by applicable intellectual property laws. Except
+            where otherwise stated, you may not copy, modify, distribute, or
+           reverse engineer any part of the app without prior permission.
         </Section>
 
         <Section title="8. Termination">
@@ -107,8 +105,12 @@ const TermsAndConditionsScreen = () => {
           accept the revised terms. Material changes will be reflected by
           an updated "Last updated" date above.
         </Section>
+        <Section title="11. Governing Law">
+          These Terms & Conditions shall be governed and interpreted in
+           accordance with the laws applicable in Nigeria, without regard to conflict of law principles.
+        </Section>
 
-        <Section title="11. Contact Us">
+        <Section title="12. Contact Us">
           If you have questions about these Terms & Conditions, please
           contact us at ucnodemailler@gmail.com.
         </Section>

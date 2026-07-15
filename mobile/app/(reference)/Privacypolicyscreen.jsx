@@ -51,7 +51,7 @@ const PrivacyPolicyScreen = () => {
           agree to the practices described below.
         </Section>
 
-        <Section title="2. Information We Collect">
+        <Section title="3. Information We Collect">
           We may collect account information (such as your name and email
           address when you register or log in), content you add to your
           library or timetable, and usage data such as app interactions and
@@ -59,60 +59,109 @@ const PrivacyPolicyScreen = () => {
         </Section>
 
         <Section title="3. How We Use Your Information">
-          We use the information we collect to provide core app features
-          (such as your library, timetable, and profile), to maintain and
-          improve the app, to communicate with you about updates or
-          support, and to display relevant, non-personalized ads through
-          our advertising partners.
+          We use your information to:
+
+            Create and manage your account,
+            Authenticate your identity,
+            Sync your library and timetable,
+            Process your subscriptions,
+            Improve app performance,
+            Fix bugs and technical issues,
+            Respond to customer support requests,
+            Display advertisements to free users,
+            Protect the security of the app and its users,
         </Section>
 
         <Section title="4. Advertising">
-          This app displays banner and rewarded video ads through
-          third-party ad networks. These networks may collect device
-          identifiers and usage data to serve and measure ads. You can
-          typically manage ad personalization through your device
-          settings.
+          BookStoreApp uses Google AdMob to display banner advertisements and rewarded advertisements.
+
+        Google and its partners may collect certain device 
+        information, including advertising identifiers and diagnostic
+        information, to deliver, measure, and improve advertisements.
+
+        You can learn more about Google's privacy practices by visiting the Google Privacy Policy.
+          
         </Section>
 
-        <Section title="5. Data Sharing">
-          We do not sell your personal information. We may share limited
-          data with service providers (such as hosting, analytics, and
-          advertising partners) solely to operate and improve the app, and
-          only to the extent necessary for them to perform their services.
+        <Section title="5. Payments">
+          BookStoreApp offers premium subscriptions.
+
+        Payments are securely processed through Paystack.
+
+        We do not collect or store your debit card, credit card, or banking information. 
+        Payment information is processed directly by Paystack 
+        according to its own privacy and security policies
+        </Section>
+        <Section title="6. Data Sharing">
+          We do not sell your personal information.
+
+          We may share information only with trusted service providers that help operate the app, including:
+
+          Google AdMob (advertising)
+          Paystack (payment processing)
+          MongoDB Atlas (database hosting)
+          Render (backend hosting)
+
+These providers receive only the information necessary to perform their services.
         </Section>
 
-        <Section title="6. Data Storage & Security">
+        <Section title="7. Data Storage & Security">
           Your data is stored securely using industry-standard practices.
           While we take reasonable steps to protect your information, no
           method of transmission or storage is 100% secure, and we cannot
           guarantee absolute security.
         </Section>
 
-        <Section title="7. Your Choices">
-          You can review, update, or delete your account information at
-          any time from your profile. You may also use offline features of
-          the app without an account, in which case less data is
-          collected.
+        <Section title="8.Data Retention">
+          We retain your information only for as long as necessary to provide 
+          the services, comply with legal obligations,
+           resolve disputes, and enforce our agreements.
+
+If you delete your account, we will remove or anonymise your personal information unless we are required by law to retain certain records.
         </Section>
 
-        <Section title="8. Children's Privacy">
+        <Section title="9.Your Rights">
+           
+
+        Depending on applicable laws, you may have the right to:
+
+        Access your personal information
+        Correct inaccurate information
+        Delete your account and personal data
+        Contact us with privacy-related questions
+        </Section>
+
+        <Section title="10. Children's Privacy">
           This app is not directed at children under 13, and we do not
           knowingly collect personal information from children under 13.
           If you believe a child has provided us with personal
           information, please contact us so we can remove it.
         </Section>
 
-        <Section title="9. Changes to This Policy">
-          We may update this Privacy Policy from time to time. Changes
-          will be reflected by an updated "Last updated" date at the top
-          of this page. Continued use of the app after changes means you
-          accept the revised policy.
-        </Section>
 
-        <Section title="10. Contact Us">
-          If you have questions about this Privacy Policy or how your data
-          is handled, please reach out to us at
-          ucnodemailler@gmail.com.
+
+        <Section title="11. Third-Party Services">
+          This app uses third-party services that have their own privacy policies, including:
+
+  Google AdMob, Paystack, MongoDB Atlas, Render
+  
+Your use of those services is also subject to their respective privacy policies.
+
+           </Section>
+          
+        <Section title="12. Changes to This Policy">
+         We may update this Privacy Policy from time to time.
+
+Any changes will become effective immediately after the
+ updated version is published within the app 
+or on our website. The "Last updated" date will always indicate the latest revision.
+        </Section>
+        <Section title="13. Contact Us">
+          If you have any questions about this Privacy Policy
+           or our handling of personal information,
+           please contact us at:
+
+         Email:bookstore.feedback.email@gmail.com
         </Section>
 
         <Spacer height={40} />

@@ -167,7 +167,7 @@ export default function UsersDeleteAccountInfo() {
             </div>
             <p className="ad-spine-footer" style={styles.spineFooter}>
               Questions? <br />
-              ucnodemailler@gmail.com
+              bookstore.feedback.email@gmail.com
             </p>
           </aside>
 
@@ -180,8 +180,8 @@ export default function UsersDeleteAccountInfo() {
                   How to Delete Your Account
                 </h2>
                 <p className="ad-dropcap" style={styles.pageIntro}>
-                  Users can permanently delete their account directly inside
-                  BookStoreApp. Once deleted, this action cannot be undone.
+                  Users can permanently delete their account directly within BookStoreApp by navigating to Settings → Account → Delete Account. 
+                  Once confirmed, your account and associated personal data will be permanently deleted. This action cannot be undone.
                 </p>
               </header>
 
