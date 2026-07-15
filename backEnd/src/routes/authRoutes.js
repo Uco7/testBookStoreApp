@@ -8,7 +8,8 @@ import {
   resetPassword,
   sendTestNotification,
   savePushToken,
-  logout
+  logout,
+  deleteAccount
 } from "../controller/authController.js";
 import { authLimiter } from "../middleWare/limiter.js";
 
