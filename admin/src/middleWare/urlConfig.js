@@ -1,12 +1,6 @@
 // src/utils/config/appUrl.js
-
-// Active ngrok forwarding string from your terminal session
 export const backendUrl_ngrok = "https://ee93-102-89-32-59.ngrok-free.app";
-
-// Production backend engine URL
 export const backendDomainUrl = "https://testbookstoreapp-backend-my8t.onrender.com";
 
-// Set this switch depending on if you are debugging locally or live in production
-const useNgrok = true; 
-
-export const BASE_URL = useNgrok ? backendUrl_ngrok : backendDomainUrl;
+// Uses Vite's built-in mode detection: dev server = local/ngrok, build = production
+export const BASE_URL = import.meta.env.DEV ? backendUrl_ngrok : backendDomainUrl;
