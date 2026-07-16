@@ -55,6 +55,14 @@
     "plugins": [
       "expo-router",
       "expo-dev-client",
+      [
+    "expo-splash-screen",
+    {
+      "image": "./assets/logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    }
+  ],
 
       [
         "react-native-google-mobile-ads",

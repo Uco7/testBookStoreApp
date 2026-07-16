@@ -42,29 +42,16 @@ router.delete("/delete-account", authMiddleware, deleteAccount);
 
 // router.get("/app/version", appVersion);
 // App version route
-const latestAppInfo = {
-  android: {
-    version: "1.0.1",
-    build: 2,
-    otaEnabled: true,
-    downloadUrl: "https://github.com/Uco7/testBookStoreApp/releases/download/v1.0.1/application-c93dcff6-ed2f-4166-a293-5c50b55786c0.apk",
-    mandatory: false,
-  },
-  ios: {
-    version: "1.0.1",
-    build: 2,
-    otaEnabled: true,
-    downloadUrl: "",
-    mandatory: false,
-  },
-};
-
-router.get("/app/version", (req, res) => {
-  const platform = req.query.platform || "android";
-  const info = latestAppInfo[platform.toLowerCase()];
-  if (!info) return res.status(400).json({ message: "Invalid platform" });
-  res.json(info);
+// e.g. routes/appVersion.js on your Render backend
+router.get("/api/app-version", (req, res) => {
+  res.json({
+    minVersion: "1.0.2",          // bump this to force everyone below it to update
+    latestVersion: "1.0.3",
+    forceUpdate: false,           // hard override — true forces update regardless of version compare
+    storeUrlAndroid: "https://play.google.com/store/apps/details?id=com.ucmobileapk.bookstore",
+    storeUrlIos: "https://apps.apple.com/app/id_YOUR_APP_ID",
+    message: "A new version is available with important fixes.",
+  });
 });
-
 
 export default router; 
