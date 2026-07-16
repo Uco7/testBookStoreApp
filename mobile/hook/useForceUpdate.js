@@ -3,7 +3,7 @@ import { Platform } from "react-native";
 import Constants from "expo-constants";
 
 // Point this at the endpoint above once it's deployed.
-const VERSION_CHECK_URL = "https://testbookstoreapp-backend-my8t.onrender.com/api/app-version";
+const VERSION_CHECK_URL = "https://testbookstoreapp-backend-my8t.onrender.com/api/v1/auth/app-version";
 
 const parseVersion = (v) =>
   (v || "0.0.0").split(".").map((n) => parseInt(n, 10) || 0);
