@@ -21,10 +21,10 @@ function App() {
             <Router>
 
             <Routes>
+                <Route path='/' element={<AdminAuth />} /> 
                 <Route path='/admin/dasbord-page' element={
                     <AdminProtectedRoute>
 
-                    <Route path='/' element={<AdminAuth />} /> 
                     <Dashbord />
                     </AdminProtectedRoute>
                     
