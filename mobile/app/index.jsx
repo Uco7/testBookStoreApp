@@ -174,7 +174,7 @@ const HomeScreen = () => {
 
         <ThemeText style={styles.subtitle}>
           Manage your collection, track reading,{"\n"}
-          and discover new books!
+          and discover new more!
         </ThemeText>
 
         <Spacer height={30} />

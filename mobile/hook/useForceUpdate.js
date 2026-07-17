@@ -48,10 +48,10 @@ export function useForceUpdate() {
       setState({
         checked: true,
         needsUpdate,
-        message:
-          data.message || "A new version of the app is required to continue.",
+        message:data.message || "📚 BookStore v1.0.3 is now available! Enjoy a cleaner app launch, better performance, and important improvements for a smoother experience.",
         storeUrl: Platform.OS === "android" ? data.storeUrlAndroid : data.storeUrlIos,
       });
+  
     } catch (err) {
       // Fail OPEN: never lock users out because the endpoint is briefly
       // down, unreachable, or misconfigured. Log and move on.

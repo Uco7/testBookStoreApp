@@ -46,11 +46,12 @@ router.delete("/delete-account", authMiddleware, deleteAccount);
 router.get("/app-version", (req, res) => {
   res.json({
     minVersion: "1.0.2",
-    latestVersion: "1.0.2",
+    latestVersion: "1.0.3",
     forceUpdate: false,
     storeUrlAndroid: "https://play.google.com/store/apps/details?id=com.ucmobileapk.bookstore",
     storeUrlIos: "https://apps.apple.com/app/id_YOUR_APP_ID",
-    message: "A new version is available with important fixes.",
+    message:
+  "📚 BookStore v1.0.3 is now available! Enjoy a cleaner app launch, better performance, and important improvements for a smoother experience."
   });
 });
 export default router; 

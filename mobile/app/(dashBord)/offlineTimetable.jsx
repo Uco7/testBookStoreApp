@@ -340,7 +340,7 @@ import {
   getOfflineTimetables,
   removeOfflineTimetable,
 } from "../../utils/offlinebookServices/offlineTimetableService";
-
+import { useTheme } from "../../context/ThemeContext";
 // useRewardAdsEnabled (boolean) AND useAdGate (interstitial gate) both
 // come from the SAME hook file here — renamed on import to avoid
 // clashing with AdsManager's own useAdGate above.
@@ -348,6 +348,18 @@ import {
   useRewardAdsEnabled,
   useAdGate as useInterstitialAdGate,
 } from "../../hook/useRewardAdsEnabled";
+const hexToRgba = (hex, alpha) => {
+  const clean = hex.replace("#", "");
+  const full =
+    clean.length === 3
+      ? clean.split("").map((c) => c + c).join("")
+      : clean;
+  const bigint = parseInt(full, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
 
 // ─── NEW: date helpers for search + display (same logic as TimetableScreen) ──
 const MONTHS = [
@@ -408,6 +420,8 @@ export default function OfflineTimetableScreen() {
   // High-level ad gating system hook (AdsManager's rewarded ad — unchanged)
   const { gate, modalProps } = useAdGate();
   const rewardAdsEnabled = useRewardAdsEnabled();
+    const { theme, scheme } = useTheme();
+  
 
   // ── 90-day INTERSTITIAL: fired ONCE per screen entry ────────────────────
   // Deliberately a plain useEffect (mount-only), not useFocusEffect — this
@@ -565,6 +579,46 @@ export default function OfflineTimetableScreen() {
       },
     ]);
   };
+  const isDark = scheme === "dark";
+
+
+
+const T = {
+    bg: theme.background,
+    card: isDark ? hexToRgba("#FFFFFF", 0.05) : "#FFFFFF",
+    cardBorder: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+
+    primary: colors.primary,
+    primaryLight: hexToRgba(colors.primary, isDark ? 0.22 : 0.1),
+
+    activeGreen: "#16a34a",
+    activeGreenBg: hexToRgba("#16a34a", isDark ? 0.2 : 0.12),
+    stoppedGray: isDark ? "#9CA3AF" : "#6B7280",
+    stoppedGrayBg: isDark ? "rgba(156,163,175,0.16)" : "#F3F4F6",
+
+    danger: "#EF4444",
+    dangerBg: hexToRgba("#EF4444", isDark ? 0.2 : 0.08),
+
+    textPrimary: theme.title,
+    textSecondary: theme.text,
+    textMuted: isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.4)",
+
+    divider: isDark ? "rgba(255,255,255,0.08)" : "#E5E7EB",
+
+    radiusCard: 16,
+    radiusBtn: 10,
+    radiusPill: 20,
+
+    shadow: isDark
+      ? {}
+      : {
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.06,
+          shadowRadius: 8,
+          elevation: 3,
+        },
+  };
 
   const renderItem = ({ item }) => {
     const itemId = item._id || item.id;
@@ -635,7 +689,10 @@ export default function OfflineTimetableScreen() {
           placeholder="Search by title, file name, type, or date…"
           value={search}
           onChangeText={setSearch}
-          style={styles.searchInput}
+          style={[
+            styles.searchInput,
+            { backgroundColor: T.card, borderColor: T.cardBorder },
+          ]}
         />
       </View>
 
