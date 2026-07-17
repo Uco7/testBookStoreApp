@@ -1,9 +1,12 @@
+
+
 import { useEffect, useState, useCallback } from "react";
 import { Platform } from "react-native";
 import Constants from "expo-constants";
+import { appUrl } from "../utils/config/appUrl";
 
 // Point this at the endpoint above once it's deployed.
-const VERSION_CHECK_URL = "https://testbookstoreapp-backend-my8t.onrender.com/api/v1/auth/app-version";
+const VERSION_CHECK_URL = `${appUrl}/api/v1/auth/app-version`;
 
 const parseVersion = (v) =>
   (v || "0.0.0").split(".").map((n) => parseInt(n, 10) || 0);
@@ -30,11 +33,15 @@ export function useForceUpdate() {
   const check = useCallback(async () => {
     try {
       const currentVersion = Constants.expoConfig?.version || "0.0.0";
+       
+     console.log("Current Version:", currentVersion); // Log the current version for debugging
 
       const res = await fetch(VERSION_CHECK_URL, { cache: "no-store" });
       if (!res.ok) throw new Error(`Bad status ${res.status}`);
       const data = await res.json();
-
+      console.log("Version Check Data:", data); // Log the fetched data for debugging
+      console.log("Minimum Required Version:", data.minVersion); // Log the minimum required version for debugging
+      console.log("Force Update Flag:", data.forceUpdate); // Log the force update flag for debugging
       const isBelowMin = compareVersions(currentVersion, data.minVersion) < 0;
       const needsUpdate = Boolean(data.forceUpdate) || isBelowMin;
 

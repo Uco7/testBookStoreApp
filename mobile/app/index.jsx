@@ -117,11 +117,11 @@ const HomeScreen = () => {
   return (
     <ThemeView style={styles.container} safe={true}>
       {/* 🔒 PRIVACY POLICY POPUP (first-launch) */}
+      <ForceUpdateModal visible={needsUpdate} message={message} storeUrl={storeUrl} />
       <PrivacyPolicyModal
         visible={showPrivacyModal}
         onAccept={handleAcceptPrivacy}
       />
-      <ForceUpdateModal visible={needsUpdate} message={message} storeUrl={storeUrl} />
 
 
       {/* TOP NAV BAR */}

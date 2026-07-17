@@ -45,13 +45,12 @@ router.delete("/delete-account", authMiddleware, deleteAccount);
 // e.g. routes/appVersion.js on your Render backend
 router.get("/app-version", (req, res) => {
   res.json({
-    minVersion: "1.0.2",          // bump this to force everyone below it to update
-    latestVersion: "1.0.3", 
-    forceUpdate: true,      // bump this to show a non-blocking update prompt    forceUpdate: false,           // hard override — true forces update regardless of version compare
+    minVersion: "1.0.2",
+    latestVersion: "1.0.2",
+    forceUpdate: false,
     storeUrlAndroid: "https://play.google.com/store/apps/details?id=com.ucmobileapk.bookstore",
     storeUrlIos: "https://apps.apple.com/app/id_YOUR_APP_ID",
     message: "A new version is available with important fixes.",
   });
 });
-
 export default router; 
