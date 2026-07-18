@@ -85,11 +85,53 @@ export const requestRegisterOTP = async (req, res) => {
 
     res.status(200).json({ message: "Verification code sent to email" });
 
-    sendEmail({
-      to: cleanEmail,
-      subject: "Your BookStore App Verification Code",
-      html: `<p>Hi ${fullName},</p><p>Your verification code is <strong>${otp}</strong>. It expires in 15 minutes.</p>`,
-    }).catch((err) => console.error("Email send failed:", err));
+    // sendEmail({
+    //   to: cleanEmail,
+    //   subject: "Your BookStore App Verification Code",
+    //   html: `<p>Hi ${fullName},</p><p>Your verification code is <strong>${otp}</strong>. It expires in 15 minutes.</p>`,
+    // }).catch((err) => console.error("Email send failed:", err));
+
+
+sendEmail({
+  to: cleanEmail,
+  subject: "Verify your BookStore App account",
+  html: `
+  <div style="font-family: Arial, sans-serif; max-width:600px; margin:auto; padding:20px; border:1px solid #e5e5e5; border-radius:8px;">
+    <h2 style="color:#2563eb;">📚 BookStore App</h2>
+
+    <p>Hello ${fullName},</p>
+
+    <p>Thank you for creating a BookStore App account.</p>
+
+    <p>Your verification code is:</p>
+
+    <div style="font-size:32px; font-weight:bold; letter-spacing:6px; text-align:center; background:#f5f5f5; padding:16px; border-radius:8px;">
+      ${otp}
+    </div>
+
+    <p>This code expires in <strong>15 minutes</strong>.</p>
+
+    <p>If you did not create a BookStore App account, you can safely ignore this email.</p>
+
+    <hr>
+
+    <p style="font-size:12px;color:#666;">
+      BookStore App<br>
+      Email: bookstore.feedback.email@gmail.com
+    </p>
+  </div>
+  `,
+  text: `Hello ${fullName},
+
+Your BookStore App verification code is ${otp}.
+
+It expires in 15 minutes.
+
+If you did not request this code, you can ignore this email.
+
+BookStore App`
+});
+
 
   } catch (err) {
     console.error("OTP Request Error:", err);
