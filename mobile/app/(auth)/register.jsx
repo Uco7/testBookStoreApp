@@ -443,7 +443,7 @@ function Register() {
 
       Alert.alert(
         '📬 Check your inbox!',
-        `We've sent a verification code to ${sanitize(email).toLowerCase()}.\n\nDon't see it? Check your spam  messages or junk folder — sometimes it likes to hide there 👀`,
+        `We've sent a verification code to ${sanitize(email).toLowerCase()}.\n\nDon't see it? Check your spam  messages or email inbox — sometimes it likes to hide there 👀`,
         [{ text: 'Got it', style: 'default' }],
         { cancelable: true }
       );
@@ -611,7 +611,7 @@ function Register() {
 <ThemeText style={styles.spamNotice}>
   📩 Can't find it? check in your{' '}
   <ThemeText style={styles.spamHighlight}>spam messages</ThemeText> or{' '}
-  <ThemeText style={styles.spamHighlight}>junk</ThemeText> folder
+  <ThemeText style={styles.spamHighlight}>email inbox</ThemeText> 
 </ThemeText>
 
                 <Spacer height={20} />

@@ -76,6 +76,7 @@ export const incrementAdCount = async () => {
 export function TimetableProvider({ children }) {
   const [timetables,       setTimetables]       = useState([]);
   const [timetableLoading, setTimetableLoading] = useState(false);
+  
 
   // ── ACCESS STATUS ──────────────────────────────────────────────────────────
   // Cached from the server. Used by screens to decide which UI to show.
@@ -240,6 +241,8 @@ export function TimetableProvider({ children }) {
         bookId: params.bookId,
         notificationMessage: params.notificationMessage,
         timetableType: params.timetableType || "regular",
+                scheduleKind: params.scheduleKind || "timetable", // NEW
+
       };
 
       const headers = {

@@ -25,7 +25,33 @@ export function UserProvider({ children }) {
     headers: { "Content-Type": "application/json" },
   });
 
-  const getToken = async () => await AsyncStorage.getItem("token");
+
+
+const getToken = async () => await AsyncStorage.getItem("token");
+
+  // ── Cache helpers ──────────────────────────────────────────────────────
+  const cacheUser = async (userData) => {
+    try {
+      await AsyncStorage.setItem("cachedUser", JSON.stringify(userData));
+    } catch {}
+  };
+
+  const getCachedUser = async () => {
+    try {
+      const raw = await AsyncStorage.getItem("cachedUser");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const clearCachedUser = async () => {
+    try {
+      await AsyncStorage.removeItem("cachedUser");
+    } catch {}
+  };
+  
+  // const getToken = async () => await AsyncStorage.getItem("token");
 
   /* ---------- REGISTRATION FLOW ---------- */
 
@@ -236,46 +262,103 @@ async function requestRegistrationOTP({ username, fullName, email, password }) {
     }
   
 
-async function fetchUser() {
-  try {
-    const token = await getToken();
 
-    if (!token) {
-      setUser(null);
+
+
+    
+// async function fetchUser() {
+//   try {
+//     const token = await getToken();
+
+//     if (!token) {
+//       setUser(null);
+//       setAuthReady(true);
+//       return;
+//     }
+
+//     const res = await api.get("/api/v1/auth/user", {
+//       headers: {
+//         Authorization: `Bearer ${token}`,
+//       },
+//     });
+
+//     setUser(res.data);
+//   } catch (err) {
+//     const isNetworkError = err.message === "Network Error";
+//     const isTimeout = err.code === "ECONNABORTED";
+
+//     console.log("Fetch User Error:", err.message);
+
+//     // ✅ CASE 1: OFFLINE → DO NOTHING (VERY IMPORTANT)
+//     if (isNetworkError || isTimeout) {
+//       setAuthReady(true);
+//       return;
+//     }
+
+//     // ❌ CASE 2: TOKEN INVALID → LOGOUT
+//     if (err.response?.status === 401) {
+//       await AsyncStorage.removeItem("token");
+//       setUser(null);
+//     }
+
+//     // ❌ CASE 3: OTHER ERRORS → DO NOT LOGOUT
+//   } finally {
+//     setAuthReady(true);
+//   }
+// }
+
+
+  async function fetchUser() {
+    try {
+      const token = await getToken();
+
+      if (!token) {
+        setUser(null);
+        await clearCachedUser();
+        setAuthReady(true);
+        return;
+      }
+
+      // Hydrate instantly from cache so the UI doesn't flash "logged out"
+      // while we wait on the network — we still verify below.
+      const cached = await getCachedUser();
+      if (cached) {
+        setUser(cached);
+        setAuthReady(true); // let the app render as logged-in right away
+      }
+
+      const res = await api.get("/api/v1/auth/user", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setUser(res.data);
+      await cacheUser(res.data); // keep cache fresh
+    } catch (err) {
+      const isNetworkError = err.message === "Network Error";
+      const isTimeout = err.code === "ECONNABORTED";
+
+      console.log("Fetch User Error:", err.message);
+
+      // CASE 1: OFFLINE / TIMEOUT → keep whatever we already set (cached
+      // user if we had one, or null if we didn't). Don't log out.
+      if (isNetworkError || isTimeout) {
+        setAuthReady(true);
+        return;
+      }
+
+      // CASE 2: TOKEN INVALID → this is the only case that should actually
+      // log the user out.
+      if (err.response?.status === 401) {
+        await AsyncStorage.removeItem("token");
+        await clearCachedUser();
+        setUser(null);
+      }
+
+      // CASE 3: other errors (500, etc.) → don't log out, don't touch cache
+    } finally {
       setAuthReady(true);
-      return;
     }
-
-    const res = await api.get("/api/v1/auth/user", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    setUser(res.data);
-  } catch (err) {
-    const isNetworkError = err.message === "Network Error";
-    const isTimeout = err.code === "ECONNABORTED";
-
-    console.log("Fetch User Error:", err.message);
-
-    // ✅ CASE 1: OFFLINE → DO NOTHING (VERY IMPORTANT)
-    if (isNetworkError || isTimeout) {
-      setAuthReady(true);
-      return;
-    }
-
-    // ❌ CASE 2: TOKEN INVALID → LOGOUT
-    if (err.response?.status === 401) {
-      await AsyncStorage.removeItem("token");
-      setUser(null);
-    }
-
-    // ❌ CASE 3: OTHER ERRORS → DO NOT LOGOUT
-  } finally {
-    setAuthReady(true);
   }
-}
 
   /* ---------- PASSWORD RECOVERY ---------- */
 

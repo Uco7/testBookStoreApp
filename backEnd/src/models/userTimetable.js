@@ -12,6 +12,12 @@ const timetableSchema = new mongoose.Schema(
       enum: ["regular", "premium"],
       default: "regular",
     },
+    // NEW: lets the user choose between a recurring timetable or a one-off reminder
+    scheduleKind: {
+      type: String,
+      enum: ["timetable", "reminder"],
+      default: "timetable",
+    },
 
     mode: {
       type: String,

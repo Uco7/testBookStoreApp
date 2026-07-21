@@ -168,6 +168,17 @@ const AccessBanner = ({ phase, daysRemaining, totalTimetables, graceMaxTables })
 
   return null;
 };
+const ScheduleKindOption = ({ value, label, description, selected, onSelect }) => (
+  <Pressable onPress={() => onSelect(value)} style={styles.kindOption}>
+    <View style={[styles.radioOuter, selected && { borderColor: colors.primary }]}>
+      {selected && <View style={[styles.radioInner, { backgroundColor: colors.primary }]} />}
+    </View>
+    <View style={{ flex: 1 }}>
+      <ThemeText style={styles.kindLabel}>{label}</ThemeText>
+      <ThemeText style={styles.kindDesc}>{description}</ThemeText>
+    </View>
+  </Pressable>
+);
 
 const CreateTimetable = () => {
   const router    = useRouter();
@@ -181,6 +192,7 @@ const CreateTimetable = () => {
   const [formPositionY,  setFormPositionY]  = useState(0);
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [adLoading,      setAdLoading]      = useState(false);
+    const [scheduleKind,   setScheduleKind]   = useState("timetable"); // NEW — this was missing
 
   // Form
   const [sessionsPerDay, setSessionsPerDay] = useState("1");
@@ -424,6 +436,8 @@ if (
         bookId: book?._id,
         bookTitle: title,
         notificationMessage: description,
+                scheduleKind, // NEW
+
       });
 
       if (!isMountedRef.current) return;
@@ -691,7 +705,32 @@ if (
                   style={styles.descInput}
                 />
 
+
+                <Spacer height={20} />
+
+                {/* NEW: schedule kind selection */}
+                <ThemeText style={styles.fieldLabel}>Reminder type</ThemeText>
+                <Spacer height={8} />
+
+                <ScheduleKindOption
+                  value="timetable"
+                  label="Timetable"
+                  description="A recurring study schedule — repeats daily or on chosen days until you stop it."
+                  selected={scheduleKind === "timetable"}
+                  onSelect={setScheduleKind}
+                />
+                <Spacer height={8} />
+                <ScheduleKindOption
+                  value="reminder"
+                  label="One-off reminder"
+                  description="A single reminder for this book/event based on a scheduled time."
+                  selected={scheduleKind === "reminder"}
+                  onSelect={setScheduleKind}
+                />
+
                 <Spacer height={24} />
+
+                {/* Submit */}
 
                 {/* Submit */}
                 <ThemeButton onPress={handleCreate} disabled={loading} style={styles.submitBtn}>
@@ -893,4 +932,15 @@ const styles = StyleSheet.create({
     position: "absolute", bottom: 0, left: 0, right: 0,
     alignItems: "center", backgroundColor: "transparent",
   },
+  kindOption: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    backgroundColor: "rgba(0,0,0,0.03)",
+  },
+  kindLabel: { fontSize: 14, fontWeight: "600" },
+  kindDesc:  { fontSize: 12, opacity: 0.5, marginTop: 2, lineHeight: 16 },
 });

@@ -117,6 +117,8 @@ export const createTimetable = async (req, res) => {
       studyDays,
       timetableType,
       notificationMessage,
+       scheduleKind, // NEW
+
     } = req.body;
 
     const user = await User.findById(req.user.id);
@@ -124,6 +126,11 @@ export const createTimetable = async (req, res) => {
 
     const book = await Book.findById(bookId).select("title");
     if (!book) return res.status(404).json({ message: "Book not found" });
+     // NEW: validate scheduleKind, default to "timetable"
+    const validScheduleKinds = ["timetable", "reminder"];
+    const resolvedScheduleKind = validScheduleKinds.includes(scheduleKind)
+      ? scheduleKind
+      : "timetable";
 
     // Total timetables this user has ever created
     const totalTimetables = await UserTimetable.countDocuments({ userId: req.user.id });
@@ -223,6 +230,7 @@ if (trimmed && trimmed.length > 250) {
       userId:              req.user.id,
       bookId,
       noticeCount,
+      scheduleKind:        resolvedScheduleKind, // NEW
       reminderTime,
       reminderType,
       studyDays,
