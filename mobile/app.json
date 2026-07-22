@@ -1,5 +1,3 @@
-
-
 {
   "expo": {
     "name": "BookStore",
@@ -13,13 +11,11 @@
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": false,
-
     "splash": {
       "image": "./assets/logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-
     "ios": {
       "supportsTablet": true,
       "buildNumber": "3",
@@ -31,46 +27,40 @@
         ]
       }
     },
-    
-
     "android": {
       "package": "com.ucmobileapk.bookstore",
       "versionCode": 5,
       "googleServicesFile": "./google-services.json",
-      
       "permissions": [
-  "RECEIVE_BOOT_COMPLETED",
-  "VIBRATE",
-  "POST_NOTIFICATIONS",
-  "SCHEDULE_EXACT_ALARM",
-  "android.permission.RECORD_AUDIO",
-  "android.permission.MODIFY_AUDIO_SETTINGS"
-],
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "POST_NOTIFICATIONS",
+        "SCHEDULE_EXACT_ALARM",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
       }
     },
-
     "plugins": [
       "expo-router",
       "expo-dev-client",
       [
-    "expo-splash-screen",
-    {
-      "image": "./assets/logo.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    }
-  ],
-
+        "expo-splash-screen",
+        {
+          "image": "./assets/logo.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
       [
         "react-native-google-mobile-ads",
         {
           "androidAppId": "ca-app-pub-8923799920726415~8937259118"
         }
       ],
-
       [
         "expo-notifications",
         {
@@ -81,7 +71,6 @@
           ]
         }
       ],
-
       [
         "expo-navigation-bar",
         {
@@ -93,10 +82,8 @@
           "position": "relative"
         }
       ],
-
       "@react-native-community/datetimepicker",
       "expo-audio",
-
       [
         "expo-build-properties",
         {
@@ -107,18 +94,17 @@
             "kotlinVersion": "2.0.21"
           }
         }
-      ]
+      ],
+      "expo-asset",
+      "expo-font"
     ],
-
     "updates": {
       "enabled": true,
       "fallbackToCacheTimeout": 0
     },
-
     "assetBundlePatterns": [
       "**/*"
     ],
-
     "extra": {
       "router": {
         "origin": false
@@ -135,12 +121,10 @@
         "projectId": "049cfc09-bfa6-430e-a482-94f5b4a8f30e"
       }
     },
-
     "platforms": [
       "ios",
       "android"
     ],
-
     "owner": "ucapp"
   }
 }
